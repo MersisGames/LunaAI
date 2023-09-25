@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../chatbot-text/__pycache__"
+		}
+	],
+	"settings": {}
+}
