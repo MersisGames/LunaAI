@@ -26,16 +26,15 @@ except FileNotFoundError:
 def create_short_term_memory_file():
     ST_id = str(uuid.uuid4())
     ST_memory_filename = f'ST_memory_{ST_id}.csv'
-    print('Short-term memory created successfully')
     
     # Crea el archivo vacío en el sistema de archivos
     with open(ST_memory_filename, 'w', encoding='utf-8'):
         pass  # Esto crea un archivo vacío
-    
+    print('Short-term memory created successfully')
     return ST_memory_filename
 
 create_short_term_memory_file()
-
+print('Short-term memory created successfully')
 # < ---------------------------------------------------------------- >  
 
 # Función para vectorizar text
@@ -43,7 +42,6 @@ def vectorize_text(text):
     return get_embedding(text, engine='text-embedding-ada-002')
 
 # < ---------------------------------------------------------------- >  
-
 # Info text file name. 
 info_filename = 'info.txt'
 
@@ -67,6 +65,9 @@ paragraph_df.to_csv('lunaData.csv', index=False)
 luna_data = pd.read_csv('lunaData.csv')
 
 def search_in_long_term_memory(question, data):
+    if data.empty:  # Verifica si data está vacío
+        return None
+
     question_vectorized = vectorize_text(question)
     data['Similarity'] = data['Vector_Question'].apply(lambda x: cosine_similarity(question_vectorized, x.reshape(1, -1))[0][0])
     data = data.sort_values('Similarity', ascending=False)
@@ -81,15 +82,15 @@ def search_in_long_term_memory(question, data):
     similar_response = data.iloc[0]['Response']
     
     # Call generate_response_with_long_term_memory to get an alternative response
-    alternative_response = generate_response_with_long_term_memory(similar_question, similar_response)
+    alternative_response = generate_response_with_long_term_memory(question, similar_response)
     
     return similar_question, alternative_response
 
-def generate_response_with_long_term_memory(question, existing_response):
+def generate_response_with_long_term_memory(question, similar_response, data, conversacion_data, ST_memory_filename):
     # Mensajes de conversación con el sistema, la pregunta del usuario y la respuesta existente en la memoria a largo plazo
     mensajes = [
         {"role": "system", "content": "You are a helpful assistant knowledgeable about planets, space, astronomy, and NASA called LUNA. Please be kind and friendly in conversation. All your answers must have a conversational and friendly tone. If the user asks about other topics, kindly inform them that you're only able to answer questions about our designated topics."},
-        {"role": "user", "content": f"I have this question: {question}, and you have this response: {existing_response} to generate a response to that question. Provide me with an alternative response with different wording."}
+        {"role": "user", "content": f"I have this question: {question}, and you have this response: {similar_response} to generate a response to that question. Provide me with an alternative response with different wording."}
     ]
 
     # Crear una conversación con ChatGPT
@@ -98,49 +99,78 @@ def generate_response_with_long_term_memory(question, existing_response):
         messages=mensajes,
     ).choices[0].message["content"]
 
-    return LTM_response  # Devolver la respuesta generada
+    # Guardar la pregunta y respuesta en la memoria a largo plazo (data.csv)
+    data = data.append({'Question': question, 'Response': LTM_response, 'Vector_Question': vectorize_text(question), 'Vector_Response': vectorize_text(LTM_response)}, ignore_index=True)
+    data.to_csv(data_filename, index=False)
 
-# Función para generar una respuesta alternativa usando lunaData.csv
+    # Guardar la pregunta y respuesta en la memoria a corto plazo (ST_memory_UUID.csv)
+    conversacion_data['Pregunta'].append(question)
+    conversacion_data['Respuesta'].append(LTM_response)
+    conversacion_data['Vector_Pregunta'].append(vectorize_text(question))
+    conversacion_data['Vector_Respuesta'].append(vectorize_text(LTM_response))
+    conversacion_df = pd.DataFrame(conversacion_data)
+    conversacion_df.to_csv(ST_memory_filename, index=False)
+
+    return LTM_response
+
 def create_response_with_lunaData(question, max_lines=3):
     question_vectorized = vectorize_text(question)  # Vectoriza la pregunta del usuario
     
+    if luna_data.empty:
+        return "I don't have any information related to your question."
+
+    # Convertir las listas de cadenas en vectores en formato numérico
+    luna_data['Embedding'] = luna_data['Embedding'].apply(lambda x: eval(x))
+    
     # Calcular la similitud de los vectores entre la pregunta y los vectores en lunaData.csv
-    luna_data['Similarity'] = luna_data['Embedding'].apply(lambda x: cosine_similarity(question_vectorized.reshape(1, -1), x.reshape(1, -1))[0][0])
+    luna_data['Similarity'] = luna_data['Embedding'].apply(lambda x: cosine_similarity([question_vectorized], [x])[0][0])
+    
+    # Restaurar el formato de las listas de cadenas para evitar problemas posteriores
+    luna_data['Embedding'] = luna_data['Embedding'].apply(lambda x: str(x))
     
     # Ordenar el DataFrame por similitud en orden descendente
     luna_data_sorted = luna_data.sort_values('Similarity', ascending=False)
     
-    # Obtener hasta las tres líneas de text más cercanas
+    if luna_data_sorted.empty:
+        return "I don't have any information related to your question."
+    
+    # Obtener hasta las tres líneas de texto más cercanas
     top_lines = luna_data_sorted['text'][:max_lines].tolist()
     
     # Combinar las líneas en una respuesta única
-    response = '\n'.join(top_lines)
+    luna_response = '\n'.join(top_lines)
     
-    return response
-
-def generar_respuesta_con_chatgpt(pregunta):
-    # Mensajes de conversación con el sistema y la pregunta del usuario
+    # Restaurar el formato original de Embedding
+    luna_data['Embedding'] = luna_data['Embedding'].apply(lambda x: "[" + ", ".join(map(str, x)) + "]")
+    
     mensajes = [
-        {"role": "system", "content": "You are a helpful assistant knowledgeable about planets, space, astronomy, and NASA called LUNA please be kind and friendly conversational, all your answers must have a conversational and kindly start. If the user asks about other topics, just say 'I'm not able to talk about it, please ask questions about our topics'"},
-        {"role": "user", "content": pregunta}
+        {"role": "system", "content": "You are a helpful assistant knowledgeable about planets, space, astronomy, and NASA called LUNA. Please be kind and friendly in conversation. All your answers must have a conversational and friendly tone. If the user asks about other topics, kindly inform them that you're only able to answer questions about our designated topics."},
+        {"role": "user", "content": f"I have this question: {question}, and you have this response: {luna_response} to generate a response to that question. Provide me with an alternative response with different wording."}
     ]
 
     # Crear una conversación con ChatGPT
-    respuesta_completa = openai.ChatCompletion.create(
+    data_response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=mensajes,
     ).choices[0].message["content"]
+    
+    data = data.append({'Question': question, 'Response': data_response, 'Vector_Question': vectorize_text(question), 'Vector_Response': vectorize_text(data_response)}, ignore_index=True)
+    data.to_csv(data_filename, index=False)
 
-    # Separar la respuesta corta de la respuesta larga
-    respuesta_corta = respuesta_completa.split('\n')[0]
+    # Guardar la pregunta y respuesta en la memoria a corto plazo (ST_memory_UUID.csv)
+    conversacion_data['Pregunta'].append(question)
+    conversacion_data['Respuesta'].append(luna_response)
+    conversacion_data['Vector_Pregunta'].append(vectorize_text(question))
+    conversacion_data['Vector_Respuesta'].append(vectorize_text(luna_response))
+    conversacion_df = pd.DataFrame(conversacion_data)
+    conversacion_df.to_csv(ST_memory_filename, index=False)
+    
+    return data_response
 
-
-    print("Respuesta Corta:", respuesta_corta)
-    return respuesta_corta
 
 # Crear una conversación individual (memoria a corto plazo) con un UUID único
 conversacion_id = str(uuid.uuid4())
-conversacion_filename = f'lunadata_{conversacion_id}.csv'
+ST_memory_filename = f'lunadata_{conversacion_id}.csv'
 
 # Crear una memoria a corto plazo para esta conversación
 conversacion_data = {
@@ -160,28 +190,15 @@ while True:
     search_result = search_in_long_term_memory(question, data)
 
     if search_result:
-        similar_question, alternative_response = search_result
-        print(f"Similar response found in long-term memory:")
-        print(f"Question: {similar_question}")
-        print(f"Alternative Response: {alternative_response}")
-    else:
-        # If no similar question was found, query ChatGPT to get a response
         alternative_response = generate_response_with_long_term_memory(question, "")
         print(f"Alternative Response generated by Long-Term Memory: {alternative_response}")
-        
+    else:
         # If no similar question was found, query lunaData.csv to get an alternative response
-        if not alternative_response:
-            alternative_response = create_response_with_lunaData(question)
-            print(f"Alternative Response generated by lunaData.csv: {alternative_response}")
-
-# Imprimir la conversación
-print("Conversación guardada en el archivo de text:")
-with open('data.txt', 'r', encoding='utf-8') as memory_file:
-    conversation_text = memory_file.read()
-    print(conversation_text)
+        data_response = create_response_with_lunaData(question, data)
+        print(f"Alternative Response generated by lunaData.csv: {data_response}")  
 
 # Guardar la memoria a corto plazo en un archivo CSV individualizado
 conversacion_df = pd.DataFrame(conversacion_data)
-conversacion_df.to_csv(conversacion_filename, index=False)
+conversacion_df.to_csv(ST_memory_filename, index=False)
 
 print("Los datos se han guardado correctamente en la memoria a corto plazo.")
