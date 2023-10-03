@@ -10,6 +10,7 @@ openai.api_key = constants.APIKEY
 
 memory_text_filename = 'data.txt'
 ST_memory_filename = ''
+info_filename= 'info.txt'
 
 # Define the data CSV file name
 data_filename = 'data.csv'
@@ -42,22 +43,30 @@ def vectorize_text(text):
     return get_embedding(text, engine='text-embedding-ada-002')
 
 # < ---------------------------------------------------------------- >  
-# Info text file name. 
-info_filename = 'info.txt'
 
-# Cargar y vectorizar el text del archivo info.txt por párrafos
-with open(info_filename, 'r', encoding='utf-8') as file:
-    text = file.read()
+# Cargar y dividir el texto del archivo info.txt en párrafos
+def create_lunaData_file():
+    print('lunaData starting.')
+    with open(info_filename, 'r', encoding='utf-8') as file:
+        text = file.read()
+        print('archivo abierto.')
 
-# Dividir el text en párrafos (ajusta el tamaño de los párrafos según tus necesidades)
-paragraphs = [p.strip() for p in text.split('\n') if p.strip()]
+    # Dividir el texto en párrafos (ajusta el tamaño de los párrafos según tus necesidades)
+    paragraphs = [p.strip() for p in text.split('\n') if p.strip()]
+    print('dividir parrafos.')
 
-# Vectorizar cada párrafo y almacenar en un DataFrame
-paragraph_embeddings = [get_embedding(para, engine='text-embedding-ada-002') for para in paragraphs]
-paragraph_df = pd.DataFrame({'text': paragraphs, 'Embedding': paragraph_embeddings})
+    # Vectorizar cada párrafo y almacenar en un DataFrame
+    paragraph_embeddings = [vectorize_text(para) for para in paragraphs]  # Vectorizar cada párrafo
+    paragraph_df = pd.DataFrame({'text': paragraphs, 'Embedding': paragraph_embeddings})
+    print('vectorizado.')
+    print(paragraph_df)
 
-# Guardar los vectores de párrafos en un archivo CSV (lunaData.csv)
-paragraph_df.to_csv('lunaData.csv', index=False)
+
+    # Guardar los vectores de párrafos en un archivo CSV (lunaData.csv)
+    paragraph_df.to_csv('lunaData.csv', index=False)
+    print('lunaData Created.')
+    
+create_lunaData_file()
 
 # < ---------------------------------------------------------------- >  
 
@@ -97,6 +106,7 @@ def generate_response_with_long_term_memory(question, similar_response, data, co
     LTM_response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=mensajes,
+        max_tokens=50,
     ).choices[0].message["content"]
 
     # Guardar la pregunta y respuesta en la memoria a largo plazo (data.csv)
@@ -113,39 +123,42 @@ def generate_response_with_long_term_memory(question, similar_response, data, co
 
     return LTM_response
 
-def create_response_with_lunaData(question, max_lines=3):
+def create_response_with_lunaData(question, data, max_lines=3):
     question_vectorized = vectorize_text(question)  # Vectoriza la pregunta del usuario
-    
-    if luna_data.empty:
+
+    if data.empty:
         return "I don't have any information related to your question."
 
     # Convertir las listas de cadenas en vectores en formato numérico
     luna_data['Embedding'] = luna_data['Embedding'].apply(lambda x: eval(x))
-    
+
     # Calcular la similitud de los vectores entre la pregunta y los vectores en lunaData.csv
     luna_data['Similarity'] = luna_data['Embedding'].apply(lambda x: cosine_similarity([question_vectorized], [x])[0][0])
-    
+
     # Restaurar el formato de las listas de cadenas para evitar problemas posteriores
     luna_data['Embedding'] = luna_data['Embedding'].apply(lambda x: str(x))
-    
+
     # Ordenar el DataFrame por similitud en orden descendente
     luna_data_sorted = luna_data.sort_values('Similarity', ascending=False)
-    
+
     if luna_data_sorted.empty:
         return "I don't have any information related to your question."
-    
+
     # Obtener hasta las tres líneas de texto más cercanas
     top_lines = luna_data_sorted['text'][:max_lines].tolist()
-    
+
     # Combinar las líneas en una respuesta única
     luna_response = '\n'.join(top_lines)
-    
+
     # Restaurar el formato original de Embedding
     luna_data['Embedding'] = luna_data['Embedding'].apply(lambda x: "[" + ", ".join(map(str, x)) + "]")
-    
+
+
     mensajes = [
-        {"role": "system", "content": "You are a helpful assistant knowledgeable about planets, space, astronomy, and NASA called LUNA. Please be kind and friendly in conversation. All your answers must have a conversational and friendly tone. If the user asks about other topics, kindly inform them that you're only able to answer questions about our designated topics."},
-        {"role": "user", "content": f"I have this question: {question}, and you have this response: {luna_response} to generate a response to that question. Provide me with an alternative response with different wording."}
+        {"role": "system",
+         "content": "You are a helpful assistant knowledgeable about planets, space, astronomy, and NASA called LUNA. Please be kind and friendly in conversation. All your answers must have a conversational and friendly tone. If the user asks about other topics, kindly inform them that you're only able to answer questions about our designated topics."},
+        {"role": "user",
+         "content": f"I have this question: {question}, and you have this response: {luna_response} to generate a response to that question. Provide me with an alternative response with different wording."}
     ]
 
     # Crear una conversación con ChatGPT
@@ -153,8 +166,10 @@ def create_response_with_lunaData(question, max_lines=3):
         model="gpt-3.5-turbo",
         messages=mensajes,
     ).choices[0].message["content"]
-    
-    data = data.append({'Question': question, 'Response': data_response, 'Vector_Question': vectorize_text(question), 'Vector_Response': vectorize_text(data_response)}, ignore_index=True)
+
+    data = data.append({'Question': question, 'Response': data_response,
+                        'Vector_Question': vectorize_text(question),
+                        'Vector_Response': vectorize_text(data_response)}, ignore_index=True)
     data.to_csv(data_filename, index=False)
 
     # Guardar la pregunta y respuesta en la memoria a corto plazo (ST_memory_UUID.csv)
@@ -164,7 +179,7 @@ def create_response_with_lunaData(question, max_lines=3):
     conversacion_data['Vector_Respuesta'].append(vectorize_text(luna_response))
     conversacion_df = pd.DataFrame(conversacion_data)
     conversacion_df.to_csv(ST_memory_filename, index=False)
-    
+
     return data_response
 
 
@@ -194,11 +209,15 @@ while True:
         print(f"Alternative Response generated by Long-Term Memory: {alternative_response}")
     else:
         # If no similar question was found, query lunaData.csv to get an alternative response
-        data_response = create_response_with_lunaData(question, data)
+        data_response = create_response_with_lunaData(question, data, max_lines=3)  # Agregar esta línea
         print(f"Alternative Response generated by lunaData.csv: {data_response}")  
 
 # Guardar la memoria a corto plazo en un archivo CSV individualizado
 conversacion_df = pd.DataFrame(conversacion_data)
 conversacion_df.to_csv(ST_memory_filename, index=False)
 
-print("Los datos se han guardado correctamente en la memoria a corto plazo.")
+if os.path.exists(ST_memory_filename):
+    os.remove(ST_memory_filename)
+    print("Short-term memory file deleted.")
+
+
