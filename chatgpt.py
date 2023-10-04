@@ -5,12 +5,13 @@ from openai.embeddings_utils import get_embedding
 from sklearn.metrics.pairwise import cosine_similarity
 import uuid
 import constants
+import vectorizer
 
 openai.api_key = constants.APIKEY
 
 memory_text_filename = 'data.txt'
 ST_memory_filename = ''
-info_filename = 'info.txt'
+info_filename = './info.txt'
 
 # Define the data CSV file name
 data_filename = 'data.csv'
@@ -36,38 +37,41 @@ def create_short_term_memory_file():
 
 ST_memory_filename = create_short_term_memory_file()
 print('Short-term memory created successfully')
+
+# def vectorize_text(text):
+#     return get_embedding(text, engine='text-embedding-ada-002')
 # < ---------------------------------------------------------------- >  
 
-# Función para vectorizar text
-def vectorize_text(text):
-    return get_embedding(text, engine='text-embedding-ada-002')
+# # Función para vectorizar text
+# def vectorize_text(text):
+#     return get_embedding(text, engine='text-embedding-ada-002')
 
-# < ---------------------------------------------------------------- >  
+# # < ---------------------------------------------------------------- >  
 
-# Cargar y dividir el texto del archivo info.txt en párrafos
-def create_lunaData_file():
-    print('lunaData starting.')
-    with open(info_filename, 'r', encoding='utf-8') as file:
-        text = file.read()
-        print('archivo abierto.')
+# # Cargar y dividir el texto del archivo info.txt en párrafos
+# def create_lunaData_file():
+#     print('lunaData starting.')
+#     with open(info_filename, 'r', encoding='utf-8') as file:
+#         text = file.read()
+#         print('archivo abierto.')
 
-    # Dividir el texto en párrafos (ajusta el tamaño de los párrafos según tus necesidades)
-    paragraphs = [p.strip() for p in text.split('\n') if p.strip()]
-    print('dividir parrafos.')
+#     # Dividir el texto en párrafos (ajusta el tamaño de los párrafos según tus necesidades)
+#     paragraphs = [p.strip() for p in text.split('\n') if p.strip()]
+#     print('dividir parrafos.')
 
-    # Vectorizar cada párrafo y almacenar en un DataFrame
-    paragraph_embeddings = [vectorize_text(para) for para in paragraphs]  # Vectorizar cada párrafo
-    paragraph_df = pd.DataFrame({'text': paragraphs, 'Embedding': paragraph_embeddings})
-    print('vectorizado.')
-    print(paragraph_df)
+#     # Vectorizar cada párrafo y almacenar en un DataFrame
+#     paragraph_embeddings = [vectorize_text(para) for para in paragraphs]  # Vectorizar cada párrafo
+#     paragraph_df = pd.DataFrame({'text': paragraphs, 'Embedding': paragraph_embeddings})
+#     print('vectorizado.')
+#     print(paragraph_df)
 
-    # Guardar los vectores de párrafos en un archivo CSV (lunaData.csv)
-    file_path = './lunaData.csv'
-    paragraph_df.to_csv(file_path, index=False)
-    print('lunaData Created at:', file_path)
-    print('lunaData Created.')
+#     # Guardar los vectores de párrafos en un archivo CSV (lunaData.csv)
+#     file_path = './lunaData.csv'
+#     paragraph_df.to_csv(file_path, index=False)
+#     print('lunaData Created at:', file_path)
+#     print('lunaData Created.')
 
-create_lunaData_file()
+# create_lunaData_file()
 
 # Cargar los datos de lunaData.csv
 luna_data = pd.read_csv('lunaData.csv')
@@ -76,7 +80,7 @@ def search_in_long_term_memory(question, data):
     if data.empty:  # Verifica si data está vacío
         return None
 
-    question_vectorized = vectorize_text(question)
+    question_vectorized = vectorizer.embed(question)
     data['Similarity'] = data['Vector_Question'].apply(lambda x: cosine_similarity(question_vectorized, x.reshape(1, -1))[0][0])
     data = data.sort_values('Similarity', ascending=False)
     
@@ -109,21 +113,21 @@ def generate_response_with_long_term_memory(question, similar_response, data, co
     ).choices[0].message["content"]
 
     # Guardar la pregunta y respuesta en la memoria a largo plazo (data.csv)
-    data = data.append({'Question': question, 'Response': LTM_response, 'Vector_Question': vectorize_text(question), 'Vector_Response': vectorize_text(LTM_response)}, ignore_index=True)
+    data = data.append({'Question': question, 'Response': LTM_response, 'Vector_Question': vectorizer.embed(question), 'Vector_Response': vectorize_text(LTM_response)}, ignore_index=True)
     data.to_csv(data_filename, index=False)
 
     # Guardar la pregunta y respuesta en la memoria a corto plazo (ST_memory_UUID.csv)
     conversacion_data['Pregunta'].append(question)
     conversacion_data['Respuesta'].append(LTM_response)
-    conversacion_data['Vector_Pregunta'].append(vectorize_text(question))
-    conversacion_data['Vector_Respuesta'].append(vectorize_text(LTM_response))
+    conversacion_data['Vector_Pregunta'].append(vectorizer.embed(question))
+    conversacion_data['Vector_Respuesta'].append(vectorizer.embed(LTM_response))
     conversacion_df = pd.DataFrame(conversacion_data)
     conversacion_df.to_csv(ST_memory_filename, index=False)
 
     return LTM_response
 
 def create_response_with_lunaData(question, data, max_lines=3):
-    question_vectorized = vectorize_text(question)  # Vectoriza la pregunta del usuario
+    question_vectorized = vectorizer.embed(question)  # Vectoriza la pregunta del usuario
 
     # Convertir las listas de cadenas en vectores en formato numérico
     luna_data['Embedding'] = luna_data['Embedding'].apply(lambda x: eval(x))
@@ -163,16 +167,17 @@ def create_response_with_lunaData(question, data, max_lines=3):
         messages=mensajes,
     ).choices[0].message["content"]
 
-    data = data.concat({'Question': question, 'Response': data_response,
-                        'Vector_Question': vectorize_text(question),
-                        'Vector_Response': vectorize_text(data_response)}, ignore_index=True)
+
+    data = data.append({'Question': question, 'Response': data_response,
+                        'Vector_Question': vectorizer.embed(question),
+                        'Vector_Response': vectorizer.embed(data_response)}, ignore_index=True)
     data.to_csv(data_filename, index=False)
 
     # Guardar la pregunta y respuesta en la memoria a corto plazo (ST_memory_UUID.csv)
     conversacion_data['Pregunta'].append(question)
     conversacion_data['Respuesta'].append(luna_response)
-    conversacion_data['Vector_Pregunta'].append(vectorize_text(question))
-    conversacion_data['Vector_Respuesta'].append(vectorize_text(luna_response))
+    conversacion_data['Vector_Pregunta'].append(vectorizer.embed(question))
+    conversacion_data['Vector_Respuesta'].append(vectorizer.embed(luna_response))
     conversacion_df = pd.DataFrame(conversacion_data)
     conversacion_df.to_csv(ST_memory_filename, index=False)
 
@@ -220,5 +225,5 @@ while True:
     user_input = input("Continue the conversation: ")
     conversacion_data['Pregunta'].append(question)
     conversacion_data['Respuesta'].append(user_input)
-    conversacion_data['Vector_Pregunta'].append(vectorize_text(question))
-    conversacion_data['Vector_Respuesta'].append(vectorize_text(user_input))
+    conversacion_data['Vector_Pregunta'].append(vectorizer.embed(question))
+    conversacion_data['Vector_Respuesta'].append(vectorizer.embed(user_input))
