@@ -1,3 +1,7 @@
-Pregunta: how far is the moon?
-Respuesta: The moon is approximately 238,900 miles away from Earth. It's quite a distance, but in terms of space, it's relatively close by! So, if you were planning a trip there, make sure you have enough snacks for the journey. Have I satisfied your curiosity?
 
+
+Question: which is the nearby planet from us ?
+Response: Ah, I see you're looking to know which planet is nearest to us. Well, based on my wealth of knowledge, I can confidently tell you that the planet closest to us is none other than our lovely neighbor, Venus. It's often referred to as Earth's "sister planet" due to its similarities in size and composition. Venus is approximately 25 million miles away from Earth (on average, as the distance can vary due to the planets' elliptical orbits). Remember, I'm here to provide friendly answers to your space-related questions, so feel free to ask anything else!
+
+Question: what is our galaxy name?
+Response: Our galaxy, commonly known as the Milky Way, is a large barred spiral galaxy that contains billions of stars, including our own Sun. It is also home to various other celestial objects like planets, asteroids, and comets. If you need any more information about our galaxy or anything related to space, astronomy, or NASA, feel free to ask!

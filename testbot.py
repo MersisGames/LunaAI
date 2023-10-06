@@ -3,12 +3,13 @@ import openai
 import pandas as pd
 from openai.embeddings_utils import get_embedding, cosine_similarity
 import uuid
+import numpy as np
 
 # Generate a unique file name based on UUID
 short_term_memory_file = str(uuid.uuid4()) + "_STM.txt"
 long_term_memory = "long_term_memory.txt" 
 
-openai.api_key = "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"
+openai.api_key = "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"
 
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
@@ -21,16 +22,22 @@ split = CharacterTextSplitter(chunk_size=400, separator='.\n')
 
 texts = split.split_documents(pages)
 
-# Extract the page_content from each text and convert it into a DataFrame
-texts = [str(i.page_content) for i in texts]  # List of paragraphs
-paragraphs = pd.DataFrame(texts, columns=["text"])
+# Inicializa paragraphs como un DataFrame vacío
+paragraphs = pd.DataFrame(columns=["text", "Embedding"])
 
-paragraphs['Embedding'] = paragraphs["text"].apply(lambda x: get_embedding(x, engine='text-embedding-ada-002'))
-paragraphs.to_csv('newData.csv')
+if not os.path.exists('newData.csv') or os.path.getsize('newData.csv') == 0:
+    texts = [str(i.page_content) for i in texts]  # List of paragraphs
+    paragraphs["text"] = texts
+    paragraphs['Embedding'] = paragraphs["text"].apply(lambda x: get_embedding(x, engine='text-embedding-ada-002'))
+    paragraphs.to_csv('newData.csv')
+else:
+    # El archivo 'newData.csv' ya tiene datos, por lo que no es necesario volver a realizar la extracción
+    print("El archivo 'newData.csv' ya contiene datos, no se realizará la extracción nuevamente.")
+
 
 def save_to_file(question, response, file):
     with open(file, 'a') as f:
-        f.write(f'Question: {question}\nResponse: {response}\n\n')
+        f.write(f'\n\nQuestion: {question}\nResponse: {response}')
 
 def delete_file_if_exists(file):
     if os.path.exists(file):
@@ -38,7 +45,7 @@ def delete_file_if_exists(file):
 
 def save_to_long_term_memory(question, response, file):
     with open(file, 'a') as f:
-        f.write(f'Pregunta: {question}\nRespuesta: {response}\n\n')
+        f.write(f'\n\nQuestion: {question}\nResponse: {response}')
 
 def search(query, data, num_results=5):
     global datafinder
@@ -69,7 +76,6 @@ def search(query, data, num_results=5):
     save_to_long_term_memory(query, LTM_response, long_term_memory)
     print(LTM_response)
 
-import numpy as np
 
 def generate_response_LTM(question):
     try:
@@ -78,19 +84,20 @@ def generate_response_LTM(question):
             for i in range(0, len(lines), 2):
                 saved_question = lines[i].strip()
                 saved_response = lines[i + 1].strip()
-                saved_question_embedding = get_embedding(saved_question, engine="text-embedding-ada-002")
-                current_question_embedding = get_embedding(question, engine="text-embedding-ada-002")
-                similarity = cosine_similarity(saved_question_embedding, current_question_embedding)
-                if similarity > 0.7:
-                    # Usar la respuesta de la pregunta similar
-                    response = saved_response
-                    print(response)
-                    return response
+                if saved_question and saved_response:
+                    saved_question_embedding = get_embedding(saved_question, engine="text-embedding-ada-002")
+                    current_question_embedding = get_embedding(question, engine="text-embedding-ada-002")
+                    similarity = cosine_similarity(saved_question_embedding, current_question_embedding)
+                    print(f'Similarity between saved question and current question: {similarity}')
+                    if similarity > 0.9:
+                        response = saved_response
+                        print(response)
+                        return response
     except FileNotFoundError:
-        pass  # Si el archivo no existe, continúa con la búsqueda
+        pass 
 
-    # Si no hay una pregunta similar en la memoria a largo plazo, continuar con la búsqueda
     search(question, paragraphs)
+
 
 while True:
     question = input("Question: ")
