@@ -9,7 +9,7 @@ import numpy as np
 short_term_memory_file = str(uuid.uuid4()) + "_STM.txt"
 long_term_memory = "long_term_memory.txt" 
 
-openai.api_key = "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"
+openai.api_key = "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"
 
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
