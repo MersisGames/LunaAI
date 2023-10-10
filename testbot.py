@@ -9,7 +9,7 @@ import numpy as np
 short_term_memory_file = str(uuid.uuid4()) + "_STM.txt"
 long_term_memory = "long_term_memory.txt" 
 
-openai.api_key = "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"
+openai.api_key = "sk-"
 
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
@@ -61,7 +61,7 @@ def search(query, data, num_results=5):
         },
         {
             "role": "user",
-            "content": f"I have this question: {query}, and you have this data to help you: {datafinder} to generate a response to that question. please answer with an alternative data with different wording."
+            "content": f"I have this question: {query}, and you have this data to help you: {datafinder} to generate a response to that question. please answer with an alternative data with different wording and dont forget what you chat earlier, here the memory chat {short_term_memory_file}."
         }
     ]
 
@@ -76,27 +76,37 @@ def search(query, data, num_results=5):
     save_to_long_term_memory(query, LTM_response, long_term_memory)
     print(LTM_response)
 
-
-def generate_response_LTM(question):
+def generate_response_LTM(question, short_term_memory_file):
     try:
+        # Verifica si el archivo de memoria a corto plazo existe antes de abrirlo
+        if os.path.exists(short_term_memory_file):
+            with open(short_term_memory_file, 'r') as stm_file:
+                short_term_memory = stm_file.read()
+        else:
+            short_term_memory = ""
+        
         with open(long_term_memory, 'r') as file:
             lines = file.readlines()
             for i in range(0, len(lines), 2):
-                saved_question = lines[i].strip()
-                saved_response = lines[i + 1].strip()
-                if saved_question and saved_response:
-                    saved_question_embedding = get_embedding(saved_question, engine="text-embedding-ada-002")
-                    current_question_embedding = get_embedding(question, engine="text-embedding-ada-002")
-                    similarity = cosine_similarity(saved_question_embedding, current_question_embedding)
-                    print(f'Similarity between saved question and current question: {similarity}')
-                    if similarity > 0.9:
-                        response = saved_response
-                        print(response)
-                        return response
+                if i + 1 < len(lines):
+                    saved_question = lines[i].strip()
+                    saved_response = lines[i + 1].strip()
+                    if saved_question and saved_response:
+                        saved_question_embedding = get_embedding(saved_question, engine="text-embedding-ada-002")
+                        current_question_embedding = get_embedding(question, engine="text-embedding-ada-002")
+                        similarity = cosine_similarity(saved_question_embedding, current_question_embedding)
+                        print(f'Similarity between saved question and current question: {similarity}')
+                        if similarity > 0.9:
+                            response = saved_response
+                            print(response)
+                            return response
     except FileNotFoundError:
-        pass 
+        pass
 
-    search(question, paragraphs)
+    # Agrega el contenido del archivo de memoria a corto plazo al contexto de la conversación
+    user_message = f"I have this question: {question}, and you have this data to help you: {datafinder} to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:\n{short_term_memory}"
+
+    search(user_message, paragraphs)
 
 
 while True:
@@ -104,4 +114,4 @@ while True:
     if question.lower() == "exit":
         delete_file_if_exists(short_term_memory_file)
         break
-    response = generate_response_LTM(question)
+    response = generate_response_LTM(question, short_term_memory_file)
