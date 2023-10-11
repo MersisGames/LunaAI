@@ -9,7 +9,7 @@ import numpy as np
 short_term_memory_file = str(uuid.uuid4()) + "_STM.txt"
 long_term_memory = "long_term_memory.txt" 
 
-openai.api_key = "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"
+openai.api_key = "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"
 
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
@@ -66,11 +66,18 @@ def search(query, data, num_results=5):
     ]
 
     # Create a conversation with ChatGPT
-    LTM_response = openai.ChatCompletion.create(
+    full_response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=messages,
-        max_tokens=200,
+        max_tokens=100,
     ).choices[0].message["content"]
+    
+   # Split the text into sentences using ". " as the delimiter
+    sentences = full_response.split(". ")
+
+    # Join all sentences starting from the second one
+    LTM_response = ". ".join(sentences[1:])
+
 
     save_to_file(query, LTM_response, short_term_memory_file)
     save_to_long_term_memory(query, LTM_response, long_term_memory)
@@ -108,10 +115,33 @@ def generate_response_LTM(question, short_term_memory_file):
 
     search(user_message, paragraphs)
 
+def generate_short_response(question): 
+    short_m = [
+        {
+            "role": "system",
+            "content": "You are a helpful assistant knowledgeable about planets, space, astronomy, and NASA called LUNA. Please be kind and friendly in conversation. All your answers must have a conversational and friendly tone. If the user asks about other topics, kindly inform them that you're only able to answer questions about our designated topics."
+        },
+        {
+            "role": "user",
+            "content": f"I have this question: {question}, give a response in no more than a line being conversational. Dont forget what you chat earlier, here the memory chat {short_term_memory_file}."
+        }
+    ]
+
+    # Create a conversation with ChatGPT
+    quick_response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=short_m,
+        max_tokens=200,
+    ).choices[0].message["content"]
+    sentences = quick_response.split(". ")
+    first_response = sentences[0]
+    print(first_response)
+    return first_response
 
 while True:
     question = input("Question: ")
     if question.lower() == "exit":
         delete_file_if_exists(short_term_memory_file)
         break
+    generate_short_response(question)
     response = generate_response_LTM(question, short_term_memory_file)
