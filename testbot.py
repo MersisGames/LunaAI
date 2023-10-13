@@ -4,12 +4,13 @@ import pandas as pd
 from openai.embeddings_utils import get_embedding, cosine_similarity
 import uuid
 import numpy as np
+import time
 
 # Generate a unique file name based on UUID
 short_term_memory_file = str(uuid.uuid4()) + "_STM.txt"
 long_term_memory = "long_term_memory.txt" 
 
-openai.api_key = "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"
+openai.api_key = "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"
 
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
@@ -21,6 +22,8 @@ pages = loader.load_and_split()
 split = CharacterTextSplitter(chunk_size=400, separator='.\n')
 
 texts = split.split_documents(pages)
+
+f_response = ""
 
 # Inicializa paragraphs como un DataFrame vacío
 paragraphs = pd.DataFrame(columns=["text", "Embedding"])
@@ -61,10 +64,10 @@ def search(query, data, num_results=5):
         },
         {
             "role": "user",
-            "content": f"I have this question: {query}, and you have this data to help you: {datafinder} to generate a response to that question. please answer with an alternative data with different wording and dont forget what you chat earlier, here the memory chat {short_term_memory_file}."
+            "content": f"I have this question: {query}, and you have this data to help you: {datafinder} to generate a response to that question. Please start your answer continuing this first part of answer {f_response} please answer with an alternative data with different wording and dont forget what you chat earlier, here the memory chat {short_term_memory_file}."
         }
     ]
-
+    start_time = time.time() 
     # Create a conversation with ChatGPT
     full_response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
@@ -77,11 +80,13 @@ def search(query, data, num_results=5):
 
     # Join all sentences starting from the second one
     LTM_response = ". ".join(sentences[1:])
-
+    
+    end_time = time.time()  # Marcar el tiempo de finalización
+    elapsed_time = end_time - start_time
 
     save_to_file(query, LTM_response, short_term_memory_file)
     save_to_long_term_memory(query, LTM_response, long_term_memory)
-    print(LTM_response)
+    print(f" {LTM_response} [{elapsed_time:.2f} ]")
 
 def generate_response_LTM(question, short_term_memory_file):
     try:
@@ -92,6 +97,7 @@ def generate_response_LTM(question, short_term_memory_file):
         else:
             short_term_memory = ""
         
+
         with open(long_term_memory, 'r') as file:
             lines = file.readlines()
             for i in range(0, len(lines), 2):
@@ -106,6 +112,7 @@ def generate_response_LTM(question, short_term_memory_file):
                         if similarity > 0.9:
                             response = saved_response
                             print(response)
+
                             return response
     except FileNotFoundError:
         pass
@@ -127,6 +134,8 @@ def generate_short_response(question):
         }
     ]
 
+    start_time = time.time()
+    
     # Create a conversation with ChatGPT
     quick_response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
@@ -135,8 +144,16 @@ def generate_short_response(question):
     ).choices[0].message["content"]
     sentences = quick_response.split(". ")
     first_response = sentences[0]
+    end_time = time.time()  # Marcar el tiempo de finalización
+    elapsed_time = end_time - start_time
+    
     print(first_response)
-    return first_response
+    
+    print(f"{first_response} [{elapsed_time:.2f} segundos]")
+    
+    f_response = first_response
+
+    return f_response
 
 while True:
     question = input("Question: ")

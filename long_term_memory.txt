@@ -8,38 +8,26 @@ Question: I have this question: tell me about the surfice of mars, and you have 
 
 Response: Ah, I see you have a question about the surface of Mars! Mars is a fascinating planet, and its surface has some interesting features. One notable feature is the presence of large volcanoes, including Olympus Mons, which is the tallest volcano in our solar system. Mars also has a canyon called Valles Marineris, which is one of the longest canyons in the entire solar system. Additionally, the surface of Mars is covered in dusty red soil, giving it a distinct reddish appearance. 
 
-It's important to note that my responses are generated based on a mixture of licensed data, data created by human trainers, and publicly available data. I should also mention that while I strive to provide accurate and up-to-date information, my responses may not always reflect the most current news or discoveries.
+It's important to note that my responses are generated based on a mixture of licensed data, data created by human trainers, and publicly available data. I should also mention that while I strive to provide accurate and up-to-date information, my responses may not always reflect the most current news or discoveries
 
-Question: I have this question: how far is venus?, and you have this data to help you: None to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:
+Question: I have this question: how many moons has mars?, and you have this data to help you: None to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:
 
-Response: Hey there! It's great to see you again! You're asking about the distance of Venus, right? Venus is our neighboring planet and it's located at an average distance of about 67.2 million miles (108.2 million kilometers) away from Earth. That can vary a bit due to the elliptical shape of the planet's orbit around the Sun. Is there anything else about Venus that you're curious about?
+Response: I'm happy to help. So, when it comes to Mars and its moons, it actually has two moons called Phobos and Deimos. They are both small and irregularly shaped, much different from our Moon here on Earth. Phobos is the larger of the two, while Deimos is smaller. Isn't it fascinating to think about other moons in our solar system? Let me know if you have any more questions!
 
-Question: I have this question: great, and how big is mars?, and you have this data to help you: Empty DataFrame
-Columns: [text]
-Index: [] to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:
+Question: I have this question: how far is the moon from us?, and you have this data to help you: None to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:
 
+Response: The average distance from Earth to the Moon is about 238,855 miles. Isn't that fascinating? If you have any more questions or need assistance with anything else, feel free to ask!
 
-Question: I have this question: how far is venus?, and you have this data to help you: None to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:
+Question: I have this question: tell me about earth superfice, and you have this data to help you: None to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:
 
-Response: Hey there! It's great to see you again! You're asking about the distance of Venus, right? Venus is our neighboring planet and it's located at an average distance of about 67.2 million miles (108.2 million kilometers) away from Earth. That can vary a bit due to the elliptical shape of the planet's orbit around the Sun. Is there anything else about Venus that you're curious about?
-Response: Hey there! It's nice to chat with you again! You're interested in knowing the size of Mars, right? Well, Mars is smaller than Earth, but it's still a pretty sizable planet. Its diameter is about 4,212 miles (6,779 kilometers). Just to give you a comparison, Earth's diameter is around 7,918 miles (12,742 kilometers). So, Mars is about half the size of Earth. Isn't that fascinating? If you have any more questions about Mars or anything else, feel free to ask!
+Response: The Earth's surface is made up of a variety of features, including continents, oceans, mountains, plains, and deserts. It has a diverse range of landscapes, such as lush forests, vast grasslands, sprawling deserts, and towering mountain ranges.
 
-Question: I have this question: tell me about jupiter superfice, and you have this data to help you: None to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:
+The Earth's surface is also home to a wide array of ecosystems and habitats that support an incredible diversity of plant and animal life. From the depths of the oceans
 
-Response: Hi! I'd be happy to tell you about the surface of Jupiter! Jupiter is a gas giant, which means it doesn't have a solid surface like Earth or Mars. Instead, it has a thick atmosphere made up mostly of hydrogen and helium. 
+Question: I have this question: how far is the moon?, and you have this data to help you: None to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:
 
-The outer layer of Jupiter's atmosphere is characterized by its colorful bands and swirling storms. The most famous storm on Jupiter is the Great Red Spot, which is a giant storm that has been raging for hundreds of years. It's so big that Earth could easily fit inside it! 
+Response: The moon is roughly 384,400 kilometers (238,855 miles) away from Earth. Isn't it fascinating how something so close can feel so far away? If you have any more questions about the moon, space, or anything else I can assist with, feel free to ask!
 
-Jupiter's atmosphere also has lots of other storms and cloud formations. These create patterns and bands of different colors, ranging from white to browns and oranges. 
+Question: I have this question: how far is jupiter from us?, and you have this data to help you: None to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:
 
-While we don't have a physical surface to stand on, scientists believe that beneath the gas and clouds, Jupiter likely has a solid core made up of heavy elements. However, we have yet to fully explore and understand the interior of Jupiter.
-
-I hope this gives you a better understanding of Jupiter's "
-
-Question: I have this question: how many planets are in milky way?, and you have this data to help you: None to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:
-
-Response: I apologize for any inconvenience caused. Let's focus on answering your question about the number of planets in the Milky Way.
-
-The Milky Way galaxy, which is the galaxy our solar system resides in, is estimated to contain billions of planets. While the exact number is not known, scientists believe that there could be as many as 100 billion planets in the Milky Way alone.
-
-Keep in mind that this is just an estimate, as it is challenging
+Response: Jupiter's distance from Earth varies depending on our respective positions in our orbits around the Sun. On average, Jupiter is about 484 million miles (778 million kilometers) away from us. Keep in mind that this is just an average distance, as the actual distance can change due to the elliptical shape of our planetary orbits. So, while 484 million miles is a good estimate, it's essential to remember that the
