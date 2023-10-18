@@ -29,7 +29,7 @@ def create_lunaData_file():
     print(paragraph_df)
 
     # Guardar los vectores de párrafos en un archivo CSV (lunaData.csv)
-    file_path = './lunaData.csv'
+    file_path = './newData.csv'
     paragraph_df.to_csv(file_path, index=False)
     print('lunaData Created at:', file_path)
     print('lunaData Created.')

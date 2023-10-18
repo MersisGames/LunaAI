@@ -10,7 +10,7 @@ import time
 short_term_memory_file = str(uuid.uuid4()) + "_STM.txt"
 long_term_memory = "long_term_memory.txt" 
 
-openai.api_key = "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"
+openai.api_key = "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"
 
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
@@ -153,7 +153,7 @@ def generate_short_response(question):
     
     f_response = first_response
 
-    return f_response
+    #return f_response
 
 while True:
     question = input("Question: ")

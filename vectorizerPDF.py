@@ -4,9 +4,9 @@ import openai
 import constants
 import fitz  # PyMuPDF
 
-openai.api_key = "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"
+openai.api_key = "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"
 
-file = '../Astronomy-2e-WEB_6qnoaIc.pdf'
+file = '../solarData.pdf'
 
 def extract_text_from_pdf(pdf_file):
     text = ""
@@ -16,7 +16,7 @@ def extract_text_from_pdf(pdf_file):
         text += page.get_text()
     return text
 
-def generate_embeddings_and_save(input_file="data.pdf", output_file="testData.csv"):
+def generate_embeddings_and_save(input_file="data.pdf", output_file="newData.csv"):
     # Extract text from the PDF file
     pdf_text = extract_text_from_pdf(input_file)
 
@@ -42,4 +42,4 @@ def generate_embeddings_and_save(input_file="data.pdf", output_file="testData.cs
     data.to_csv(output_file, index=False)
 
 # Call the function to process the data.pdf file and save the results to testData.csv
-generate_embeddings_and_save(file, "testData.csv")
+generate_embeddings_and_save(file, "newData.csv")

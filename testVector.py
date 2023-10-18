@@ -5,7 +5,7 @@ import constants
 
 openai.api_key = constants.APIKEY
 
-def generate_embeddings_and_save(input_file="data.txt", output_file="testData.csv"):  # Change the output file name
+def generate_embeddings_and_save(input_file="data.txt", output_file=" newData.csv"):  # Change the output file name
     # Read the content of the .txt file and split it into paragraphs
     with open(input_file, "r", encoding="utf-8") as file:
         paragraphs = file.read().split("\n\n")  # Assuming paragraphs are separated by two line breaks
@@ -29,4 +29,4 @@ def generate_embeddings_and_save(input_file="data.txt", output_file="testData.cs
     data.to_csv(output_file, index=False)
 
 # Call the function to process the data.txt file and save the results to testData.csv
-generate_embeddings_and_save("data.txt", "testData.csv")
+generate_embeddings_and_save("data.txt", "newData.csv")
