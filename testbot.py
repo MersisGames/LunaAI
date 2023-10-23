@@ -6,11 +6,13 @@ import uuid
 import numpy as np
 import time
 
+import requests
+
 # Generate a unique file name based on UUID
 short_term_memory_file = str(uuid.uuid4()) + "_STM.txt"
 long_term_memory = "long_term_memory.txt" 
 
-openai.api_key = "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"
+openai.api_key = "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"
 
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
@@ -86,6 +88,8 @@ def search(query, data, num_results=5):
 
     save_to_file(query, LTM_response, short_term_memory_file)
     save_to_long_term_memory(query, LTM_response, long_term_memory)
+    requests.post('http://localhost:5000/ask', json={"question": question, "response": LTM_response})
+
     print(f" {LTM_response} [{elapsed_time:.2f} ]")
 
 def generate_response_LTM(question, short_term_memory_file):
@@ -148,6 +152,8 @@ def generate_short_response(question):
     elapsed_time = end_time - start_time
     
     print(first_response)
+    
+    requests.post('http://localhost:5000/ask', json={"question": question, "response": first_response})
     
     print(f"{first_response} [{elapsed_time:.2f} segundos]")
     

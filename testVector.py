@@ -1,32 +1,37 @@
 import pandas as pd
+import PyPDF2
 from openai.embeddings_utils import get_embedding
 import openai
 import constants
 
 openai.api_key = constants.APIKEY
 
-def generate_embeddings_and_save(input_file="data.txt", output_file=" newData.csv"):  # Change the output file name
-    # Read the content of the .txt file and split it into paragraphs
-    with open(input_file, "r", encoding="utf-8") as file:
-        paragraphs = file.read().split("\n\n")  # Assuming paragraphs are separated by two line breaks
+def extract_text_from_pdf(pdf_file):
+    text = ""
+    with open(pdf_file, "rb") as pdf_file:
+        pdf_reader = PyPDF2.PdfReader(pdf_file)
+        for page_num in range(len(pdf_reader.pages)):
+            text += pdf_reader.pages[page_num].extract_text()
+    return text
 
-    # Initialize lists to store paragraphs and their embeddings
+def generate_embeddings_and_save(input_pdf, output_file="newData.csv"):
+    text = extract_text_from_pdf(input_pdf)
+
+    # Split the text into paragraphs
+    paragraphs = text.split("\n\n")
+
     paragraph_texts = []
     paragraph_embeddings = []
 
-    # Generate embeddings for each paragraph
     for paragraph in paragraphs:
-        paragraph = paragraph.strip()  # Remove extra whitespace at the beginning and end
+        paragraph = paragraph.strip()
         if paragraph:
             embedding = get_embedding(paragraph, engine="text-embedding-ada-002")
             paragraph_texts.append(paragraph)
             paragraph_embeddings.append(embedding)
 
-    # Create a DataFrame with paragraphs and their embeddings
     data = pd.DataFrame({"text": paragraph_texts, "Embedding": paragraph_embeddings})
-
-    # Save the data to a CSV file with the new name
     data.to_csv(output_file, index=False)
 
-# Call the function to process the data.txt file and save the results to testData.csv
-generate_embeddings_and_save("data.txt", "newData.csv")
+# Llama a la función para procesar el archivo PDF y guardar los resultados en newData.csv
+generate_embeddings_and_save("../space1.pdf", "newData.csv")
