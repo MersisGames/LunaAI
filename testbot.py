@@ -12,7 +12,7 @@ import requests
 short_term_memory_file = str(uuid.uuid4()) + "_STM.txt"
 long_term_memory = "long_term_memory.txt" 
 
-openai.api_key = "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"
+openai.api_key = "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" 
 
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
@@ -122,9 +122,9 @@ def generate_response_LTM(question, short_term_memory_file):
         pass
 
     # Agrega el contenido del archivo de memoria a corto plazo al contexto de la conversación
-    user_message = f"I have this question: {question}, and you have this data to help you: {datafinder} to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:\n{short_term_memory}"
+    question = f"I have this question: {question}, and you have this data to help you: {datafinder} to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:\n{short_term_memory}"
 
-    search(user_message, paragraphs)
+    search(question, paragraphs)
 
 def generate_short_response(question): 
     short_m = [
@@ -159,9 +159,9 @@ def generate_short_response(question):
     
     f_response = first_response
 
-    #return f_response
+# ... (otro código)
 
-while True:
+while __name__ == "__main__":
     question = input("Question: ")
     if question.lower() == "exit":
         delete_file_if_exists(short_term_memory_file)
