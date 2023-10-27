@@ -18,10 +18,21 @@ def generate_bot_response(question):
     long_response = generate_response_LTM(question, short_term_memory_file)
     return long_response, short_response
 
-@app.route('/ask', methods=['POST'])
-def ask_question(long_response, short_response):
+
+@app.route('/ask_question/<question>', methods=['POST'])
+def ask_question_from_url(question):
+    # Envía la pregunta al bot y obtén la respuesta
+    short_response = generate_short_response(question)
+    long_response = generate_response_LTM(question, short_term_memory_file)
     
-    # Actualizar el archivo JSON
+    return jsonify({"short_response": short_response, "long_response": long_response })
+
+
+@app.route('/save', methods=['POST'])
+def save_answer():
+    question = request.json.get("question")
+    short_response = generate_short_response(question) 
+    long_response = generate_response_LTM(question)
     response_data['short_response'] = short_response
     response_data['long_response'] = long_response
 
@@ -31,29 +42,12 @@ def ask_question(long_response, short_response):
     return jsonify({"message": "Respuestas almacenadas con éxito"})
 
 
-
-@app.route('/ask_question/<question>', methods=['POST'])
-def ask_question_from_url(question):
-    # Envía la pregunta al bot y obtén la respuesta
-    response = generate_bot_response(question)
-    
-    return jsonify({"response": response})
-
-
-@app.route('/get_short_response', methods=['GET'])
-def get_short_response():
-    if 'short_response' in response_data:
-        return jsonify({"short_response": response_data['short_response']})
+@app.route('/get/<question>', methods=['GET'])
+def get_response(question):
+    if question in response_data:
+        return jsonify({"response": response_data[question]})
     else:
-        return jsonify({"error": "No hay respuesta corta almacenada"})
-
-@app.route('/get_long_response', methods=['GET'])
-def get_long_response():
-    if 'long_response' in response_data:
-        return jsonify({"long_response": response_data['long_response']})
-    else:
-        return jsonify({"error": "No hay respuesta larga almacenada"})
-
+        return jsonify({"error": "La pregunta no tiene respuesta"})
 
 if __name__ == '__main__':
     try:

@@ -12,7 +12,7 @@ import requests
 short_term_memory_file = str(uuid.uuid4()) + "_STM.txt"
 long_term_memory = "long_term_memory.txt" 
 
-openai.api_key = "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" 
+openai.api_key = "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" 
 
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
@@ -88,9 +88,10 @@ def search(query, data, num_results=5):
 
     save_to_file(query, LTM_response, short_term_memory_file)
     save_to_long_term_memory(query, LTM_response, long_term_memory)
-    requests.post('http://localhost:5000/ask', json={"question": question, "response": LTM_response})
+    
 
     print(f" {LTM_response} [{elapsed_time:.2f} ]")
+    return LTM_response
 
 def generate_response_LTM(question, short_term_memory_file):
     try:
@@ -112,7 +113,6 @@ def generate_response_LTM(question, short_term_memory_file):
                         saved_question_embedding = get_embedding(saved_question, engine="text-embedding-ada-002")
                         current_question_embedding = get_embedding(question, engine="text-embedding-ada-002")
                         similarity = cosine_similarity(saved_question_embedding, current_question_embedding)
-                        print(f'Similarity between saved question and current question: {similarity}')
                         if similarity > 0.9:
                             response = saved_response
                             print(response)
@@ -124,7 +124,8 @@ def generate_response_LTM(question, short_term_memory_file):
     # Agrega el contenido del archivo de memoria a corto plazo al contexto de la conversación
     question = f"I have this question: {question}, and you have this data to help you: {datafinder} to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:\n{short_term_memory}"
 
-    search(question, paragraphs)
+    response = search(question, paragraphs)
+    return response
 
 def generate_short_response(question): 
     short_m = [
@@ -152,12 +153,9 @@ def generate_short_response(question):
     elapsed_time = end_time - start_time
     
     print(first_response)
+    return first_response
     
-    requests.post('http://localhost:5000/ask', json={"question": question, "response": first_response})
-    
-    print(f"{first_response} [{elapsed_time:.2f} segundos]")
-    
-    f_response = first_response
+
 
 # ... (otro código)
 
