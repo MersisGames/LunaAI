@@ -1,7 +1,7 @@
 import uuid
 from flask import Flask, request, jsonify
 import json
-
+import os
 from testbot import generate_response_LTM, generate_short_response
 
 app = Flask(__name__)
@@ -9,45 +9,51 @@ app = Flask(__name__)
 # Archivo JSON para almacenar respuestas
 response_data = {}
 
-short_term_memory_file = str(uuid.uuid4()) + "_STM.txt"  # Declarar la variable global
-
-# Función para generar una respuesta desde el bot
-def generate_bot_response(question):
-    global short_term_memory_file
-    short_response = generate_short_response(question)
-    long_response = generate_response_LTM(question, short_term_memory_file)
-    return long_response, short_response
+SHORT_TERM_MEMORY_FILE = str(uuid.uuid4()) + "_STM.txt"  # Declarar la variable global
 
 
 @app.route('/ask_question/<question>', methods=['POST'])
-def ask_question_from_url(question):
-    # Envía la pregunta al bot y obtén la respuesta
+def generate_bot_response(question):
+    global SHORT_TERM_MEMORY_FILE
     short_response = generate_short_response(question)
-    long_response = generate_response_LTM(question, short_term_memory_file)
+    if os.path.exists('shortResponse.json'):
+        os.remove('shortResponse.json')
+    with open('shortResponse.json', 'w') as json_file:
+        json.dump({"short_response": short_response}, json_file)
     
-    return jsonify({"short_response": short_response, "long_response": long_response })
+    long_response = generate_response_LTM(question, SHORT_TERM_MEMORY_FILE)
+    if os.path.exists('longResponse.json'):
+        os.remove('longResponse.json')
+    with open('longResponse.json', 'w') as json_file:
+        json.dump({"long_response": long_response}, json_file)
 
-
-@app.route('/save', methods=['POST'])
-def save_answer():
-    question = request.json.get("question")
-    short_response = generate_short_response(question) 
-    long_response = generate_response_LTM(question)
-    response_data['short_response'] = short_response
-    response_data['long_response'] = long_response
-
-    with open('responses.json', 'w') as json_file:
-        json.dump(response_data, json_file)
 
     return jsonify({"message": "Respuestas almacenadas con éxito"})
 
+@app.route('/get_short_response', methods=['GET'])
+def get_short_response():
+    try:
+        if os.path.exists('shortResponse.json'):
+            with open('shortResponse.json', 'r') as json_file:
+                response_data = json.load(json_file)
+                return jsonify(response_data)
+        else:
+            return jsonify({"error": "No hay respuesta corta disponible"})
+    except FileNotFoundError:
+        return jsonify({"error": "No hay respuesta corta disponible"})
 
-@app.route('/get/<question>', methods=['GET'])
-def get_response(question):
-    if question in response_data:
-        return jsonify({"response": response_data[question]})
-    else:
-        return jsonify({"error": "La pregunta no tiene respuesta"})
+@app.route('/get_long_response', methods=['GET'])
+def get_long_response():
+    try:
+        if os.path.exists('longResponse.json'):
+            with open('longResponse.json', 'r') as json_file:
+                response_data = json.load(json_file)
+                return jsonify(response_data)
+        else:
+            return jsonify({"error": "No hay respuesta larga disponible"})
+    except FileNotFoundError:
+        return jsonify({"error": "No hay respuesta larga disponible"})
+
 
 if __name__ == '__main__':
     try:

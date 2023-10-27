@@ -18,7 +18,7 @@ GPT_MODEL = 'gpt-3.5-turbo'
 EMBEDING_ENGINE = "text-embedding-ada-002"
 
 #VARIABLES
-short_term_memory_file = str(uuid.uuid4()) + "_STM.txt"
+SHORT_TERM_MEMORY_FILE = str(uuid.uuid4()) + "_STM.txt"
 data_results = None
 f_response = ""
 
@@ -76,7 +76,7 @@ def search(query, data, num_results=5):
         },
         {
             "role": "user",
-            "content": f"I have this question: {query}, and you have this data to help you: {data_results} to generate a response to that question. Please start your answer continuing this first part of answer {f_response} please answer with an alternative data with different wording and dont forget what you chat earlier, here the memory chat {short_term_memory_file}."
+            "content": f"I have this question: {query}, and you have this data to help you: {data_results} to generate a response to that question. Please start your answer continuing this first part of answer {f_response} please answer with an alternative data with different wording and dont forget what you chat earlier, here the memory chat {SHORT_TERM_MEMORY_FILE}."
         }
     ]
 
@@ -97,18 +97,18 @@ def search(query, data, num_results=5):
     end_time = time.time()  # Marcar el tiempo de finalización
     elapsed_time = end_time - start_time
 
-    save_file(query, LTM_response, short_term_memory_file) #podemos convertir esto en un cosntant?
+    save_file(query, LTM_response, SHORT_TERM_MEMORY_FILE)
     save_to_long_term_memory(query, LTM_response, LONG_TERM_MEMORY_FILE)
     
 
     print(f" {LTM_response} [{elapsed_time:.2f} ]")
     return LTM_response
 
-def generate_response_LTM(question, short_term_memory_file):
+def generate_response_LTM(question, SHORT_TERM_MEMORY_FILE):
     try:
         # Check short term memory exists.
-        if os.path.exists(short_term_memory_file):
-            with open(short_term_memory_file, 'r') as stm_file:
+        if os.path.exists(SHORT_TERM_MEMORY_FILE):
+            with open(SHORT_TERM_MEMORY_FILE, 'r') as stm_file:
                 short_term_memory = stm_file.read()
         else:
             short_term_memory = ""
@@ -146,7 +146,7 @@ def generate_short_response(question):
         },
         {
             "role": "user",
-            "content": f"I have this question: {question}, give a response in no more than a line being conversational. Dont forget what you chat earlier, here the memory chat {short_term_memory_file}."
+            "content": f"I have this question: {question}, give a response in no more than a line being conversational. Dont forget what you chat earlier, here the memory chat {SHORT_TERM_MEMORY_FILE}."
         }
     ]
 
@@ -168,12 +168,10 @@ def generate_short_response(question):
     
 
 
-# ... (otro código)
-
 while __name__ == "__main__":
     question = input("Question: ")
     if question.lower() == "exit":
-        delete_file(short_term_memory_file)
+        delete_file(SHORT_TERM_MEMORY_FILE)
         break
     generate_short_response(question)
-    response = generate_response_LTM(question, short_term_memory_file)
+    response = generate_response_LTM(question, SHORT_TERM_MEMORY_FILE)
