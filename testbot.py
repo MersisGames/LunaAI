@@ -1,65 +1,74 @@
 import os
 import openai
 import pandas as pd
-from openai.embeddings_utils import get_embedding, cosine_similarity
 import uuid
 import numpy as np
 import time
 import constants
-
 import requests
 
-# Generate a unique file name based on UUID
-short_term_memory_file = str(uuid.uuid4()) + "_STM.txt"
-long_term_memory = "long_term_memory.txt" 
-
-openai.api_key = constants.APIKEY 
-
+from openai.embeddings_utils import get_embedding, cosine_similarity
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
 
-loader = PyPDFLoader("../solarData.pdf")
-datafinder = None
-pages = loader.load_and_split()
+#CONSTANTS
+LONG_TERM_MEMORY_FILE = "long_term_memory.txt" 
+NEW_DATA_FILE = 'newData.csv'
+GPT_MODEL = 'gpt-3.5-turbo'
+EMBEDING_ENGINE = "text-embedding-ada-002"
 
-split = CharacterTextSplitter(chunk_size=400, separator='.\n')
-
-texts = split.split_documents(pages)
-
+#VARIABLES
+short_term_memory_file = str(uuid.uuid4()) + "_STM.txt"
+data_results = None
 f_response = ""
 
-# Inicializa paragraphs como un DataFrame vacío
+
+# Generate a unique file name based on UUID
+
+#INIT
+openai.api_key = constants.APIKEY 
 paragraphs = pd.DataFrame(columns=["text", "Embedding"])
 
-if not os.path.exists('newData.csv') or os.path.getsize('newData.csv') == 0:
-    texts = [str(i.page_content) for i in texts]  # List of paragraphs
-    paragraphs["text"] = texts
-    paragraphs['Embedding'] = paragraphs["text"].apply(lambda x: get_embedding(x, engine='text-embedding-ada-002'))
-    paragraphs.to_csv('newData.csv')
-else:
-    # El archivo 'newData.csv' ya tiene datos, por lo que no es necesario volver a realizar la extracción
-    print("El archivo 'newData.csv' ya contiene datos, no se realizará la extracción nuevamente.")
 
 
-def save_to_file(question, response, file):
-    with open(file, 'a') as f:
-        f.write(f'\n\nQuestion: {question}\nResponse: {response}')
 
-def delete_file_if_exists(file):
-    if os.path.exists(file):
-        os.remove(file)
+# Load data if it doesn't exist
+def init_data():
+    if not os.path.exists(NEW_DATA_FILE) or os.path.getsize(NEW_DATA_FILE) == 0:
+        loader = PyPDFLoader("../solarData.pdf")
+        pages = loader.load_and_split()
+        split = CharacterTextSplitter(chunk_size=400, separator='.\n')
+        texts = split.split_documents(pages)
+        texts = [str(i.page_content) for i in texts]  # List of paragraphs
 
+        paragraphs["text"] = texts
+        paragraphs['Embedding'] = paragraphs["text"].apply(lambda x: get_embedding(x, engine='text-embedding-ada-002'))
+        paragraphs.to_csv(NEW_DATA_FILE)
+    else:
+        print("File 'newData.csv' is already populated.")
+
+
+#TODO: Check why we have two identical functions with different names
 def save_to_long_term_memory(question, response, file):
     with open(file, 'a') as f:
         f.write(f'\n\nQuestion: {question}\nResponse: {response}')
 
+def save_file(question, response, file):
+    with open(file, 'a') as f:
+        f.write(f'\n\nQuestion: {question}\nResponse: {response}')
+
+def delete_file(file):
+    if os.path.exists(file):
+        os.remove(file)
+
+
 def search(query, data, num_results=5):
-    global datafinder
-    query_embed = get_embedding(query, engine="text-embedding-ada-002")
+    query_embed = get_embedding(query, engine=EMBEDING_ENGINE)
     data["Similarity"] = data['Embedding'].apply(lambda x: cosine_similarity(x, query_embed))
     data = data.sort_values("Similarity", ascending=False)
-    final_data = data.iloc[:num_results][["text"]]
-    datafinder = final_data
+    data_results = data.iloc[:num_results][["text"]]
+    
+    #Prep Messages
     messages = [
         {
             "role": "system",
@@ -67,11 +76,12 @@ def search(query, data, num_results=5):
         },
         {
             "role": "user",
-            "content": f"I have this question: {query}, and you have this data to help you: {datafinder} to generate a response to that question. Please start your answer continuing this first part of answer {f_response} please answer with an alternative data with different wording and dont forget what you chat earlier, here the memory chat {short_term_memory_file}."
+            "content": f"I have this question: {query}, and you have this data to help you: {data_results} to generate a response to that question. Please start your answer continuing this first part of answer {f_response} please answer with an alternative data with different wording and dont forget what you chat earlier, here the memory chat {short_term_memory_file}."
         }
     ]
+
+    #Generate Response
     start_time = time.time() 
-    # Create a conversation with ChatGPT
     full_response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=messages,
@@ -87,8 +97,8 @@ def search(query, data, num_results=5):
     end_time = time.time()  # Marcar el tiempo de finalización
     elapsed_time = end_time - start_time
 
-    save_to_file(query, LTM_response, short_term_memory_file)
-    save_to_long_term_memory(query, LTM_response, long_term_memory)
+    save_file(query, LTM_response, short_term_memory_file) #podemos convertir esto en un cosntant?
+    save_to_long_term_memory(query, LTM_response, LONG_TERM_MEMORY_FILE)
     
 
     print(f" {LTM_response} [{elapsed_time:.2f} ]")
@@ -96,7 +106,7 @@ def search(query, data, num_results=5):
 
 def generate_response_LTM(question, short_term_memory_file):
     try:
-        # Verifica si el archivo de memoria a corto plazo existe antes de abrirlo
+        # Check short term memory exists.
         if os.path.exists(short_term_memory_file):
             with open(short_term_memory_file, 'r') as stm_file:
                 short_term_memory = stm_file.read()
@@ -104,7 +114,7 @@ def generate_response_LTM(question, short_term_memory_file):
             short_term_memory = ""
         
 
-        with open(long_term_memory, 'r') as file:
+        with open(LONG_TERM_MEMORY_FILE, 'r') as file:
             lines = file.readlines()
             for i in range(0, len(lines), 2):
                 if i + 1 < len(lines):
@@ -122,8 +132,8 @@ def generate_response_LTM(question, short_term_memory_file):
     except FileNotFoundError:
         pass
 
-    # Agrega el contenido del archivo de memoria a corto plazo al contexto de la conversación
-    question = f"I have this question: {question}, and you have this data to help you: {datafinder} to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:\n{short_term_memory}"
+    # Add short term memory as context to conversation.
+    question = f"I have this question: {question}, and you have this data to help you: {data_results} to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:\n{short_term_memory}"
 
     response = search(question, paragraphs)
     return response
@@ -163,7 +173,7 @@ def generate_short_response(question):
 while __name__ == "__main__":
     question = input("Question: ")
     if question.lower() == "exit":
-        delete_file_if_exists(short_term_memory_file)
+        delete_file(short_term_memory_file)
         break
     generate_short_response(question)
     response = generate_response_LTM(question, short_term_memory_file)
