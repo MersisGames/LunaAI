@@ -5,6 +5,7 @@ from openai.embeddings_utils import get_embedding, cosine_similarity
 import uuid
 import numpy as np
 import time
+import constants
 
 import requests
 
@@ -12,7 +13,7 @@ import requests
 short_term_memory_file = str(uuid.uuid4()) + "_STM.txt"
 long_term_memory = "long_term_memory.txt" 
 
-openai.api_key = "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" 
+openai.api_key = constants.APIKEY 
 
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
