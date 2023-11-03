@@ -11,24 +11,30 @@ response_data = {}
 
 SHORT_TERM_MEMORY_FILE = str(uuid.uuid4()) + "_STM.txt"  # Declarar la variable global
 
-
-@app.route('/ask_question/<question>', methods=['POST'])
-def generate_bot_response(question):
-    global SHORT_TERM_MEMORY_FILE
+def generate_short_response(question):
     short_response = generate_short_response(question)
     if os.path.exists('shortResponse.json'):
         os.remove('shortResponse.json')
     with open('shortResponse.json', 'w') as json_file:
         json.dump({"short_response": short_response}, json_file)
-    
+    return jsonify({"message": "Respuesta corta guardada con éxito"})
+
+def generate_long_response(question):
     long_response = generate_response_LTM(question, SHORT_TERM_MEMORY_FILE)
     if os.path.exists('longResponse.json'):
         os.remove('longResponse.json')
     with open('longResponse.json', 'w') as json_file:
         json.dump({"long_response": long_response}, json_file)
+    return jsonify({"message": "Respuesta larga guardada con éxito"})
 
-
-    return jsonify({"message": "Respuestas almacenadas con éxito"})
+@app.route('/ask_question/<question>', methods=['POST'])
+def ask_question(question):
+    try:
+        generate_short_response(question)
+        generate_long_response(question)
+        return jsonify({"message": "Respuestas guardada con éxito"})
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 @app.route('/get_short_response', methods=['GET'])
 def get_short_response():
@@ -53,7 +59,6 @@ def get_long_response():
             return jsonify({"error": "No hay respuesta larga disponible"})
     except FileNotFoundError:
         return jsonify({"error": "No hay respuesta larga disponible"})
-
 
 if __name__ == '__main__':
     try:

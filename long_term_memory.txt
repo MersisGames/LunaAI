@@ -65,3 +65,31 @@ Response: Let's explore it together.
 Our solar system is a vast planetary system that revolves around the Sun. It consists of eight major planets: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, and Neptune. Each of these planets has its own unique characteristics and features.
 
 Mercury is the closest planet to the Sun and is known for its extreme temperatures, while Venus is often called
+
+Question: I have this question: tell me about solar system, and you have this data to help you: None to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:
+
+Response: The solar system is a fascinating place filled with planets, moons, asteroids, comets, and other celestial objects. Our solar system consists of eight planets, namely Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, and Neptune. These planets orbit around our star, the Sun.
+
+Each planet has its own unique characteristics. For example, Mercury is the closest planet to the Sun and is known for its extreme
+
+Question: I have this question: tell me about mars, and you have this data to help you: None to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:
+
+Response: It is often called the "Red Planet" because of its reddish appearance. Mars is known for its dusty surface and has the largest volcano and the longest canyon in our solar system. It also has polar ice caps that consist of water and carbon dioxide.
+
+Missions to Mars, like the recent Perseverance rover, have discovered interesting features such as ancient lake beds and evidence of
+
+Question: I have this question: tell me about venus, and you have this data to help you: None to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:
+
+Response: It's often called Earth's sister planet because it's similar in size and composition. Venus is the second planet from the Sun, located between Mercury and Earth. It has a thick atmosphere primarily made up of carbon dioxide, which traps heat and makes Venus the hottest planet in our solar system.
+
+Did you know that Venus has a runaway greenhouse effect? This means that the heat from the Sun gets trapped in the atmosphere, causing the planet's surface
+
+Question: I have this question: tell me about venus, and you have this data to help you: None to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:
+
+Response: However, I can still provide you with information about Venus! 
+
+Venus is often referred to as Earth's "twin" due to its similar size and composition. It is the second planet from the Sun and is known for its thick atmosphere, which consists mainly of carbon dioxide with traces of sulfuric acid. In fact, Venus has a runaway greenhouse effect, making it the hottest planet
+
+Question: I have this question: how i can make a piza, and you have this data to help you: None to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:
+
+Response: I'm afraid I don't have the ability to help you make a pizza. My purpose is to provide information and answer questions related to the topics I specialize in. If you have any questions about space or astronomy, feel free to ask, and I'll be happy to assist you!
