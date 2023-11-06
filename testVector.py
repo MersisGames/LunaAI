@@ -34,4 +34,4 @@ def generate_embeddings_and_save(input_pdf, output_file="newData.csv"):
     data.to_csv(output_file, index=False)
 
 # Llama a la función para procesar el archivo PDF y guardar los resultados en newData.csv
-generate_embeddings_and_save("../space1.pdf", "newData.csv")
+generate_embeddings_and_save("../space2.pdf", "newData.csv")
