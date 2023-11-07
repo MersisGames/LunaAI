@@ -14,7 +14,7 @@ from langchain.text_splitter import CharacterTextSplitter
 #CONSTANTS
 LONG_TERM_MEMORY_FILE = "long_term_memory.txt" 
 NEW_DATA_FILE = 'newData.csv'
-GPT_MODEL = 'gpt-3.5-turbo'
+GPT_MODEL = 'gpt-4-1106-preview'
 EMBEDING_ENGINE = "text-embedding-ada-002"
 
 #VARIABLES
@@ -83,7 +83,7 @@ def search(query, data, num_results=5):
     #Generate Response
     start_time = time.time() 
     full_response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4-1106-preview",
         messages=messages,
         max_tokens=100,
     ).choices[0].message["content"]
@@ -154,7 +154,7 @@ def generate_short_response(question):
     
     # Create a conversation with ChatGPT
     quick_response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4-1106-preview",
         messages=short_m,
         max_tokens=200,
     ).choices[0].message["content"]

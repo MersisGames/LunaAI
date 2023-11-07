@@ -127,3 +127,7 @@ Response: So, you would like to know the distance to Mars? Well, the distance be
 Question: I have this question: how far is jupiter, and you have this data to help you: None to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:
 
 Response: Jupiter is located approximately 484 million miles (778 million kilometers) away from Earth on average. It's the largest planet in our solar system and takes about 11.86 Earth years to complete one orbit around the Sun. Jupiter is a fascinating gas giant, adorned with swirling clouds and a prominent feature called the Great Red Spot. If you have any more questions about Jupiter or any other topic within my expertise, feel free to ask!
+
+Question: I have this question: how far is mars, and you have this data to help you: None to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:
+
+Response: On average, Mars is about 225 million kilometers (140 million miles) away from Earth. But this distance can range from about 54.6 million kilometers (33.9 million miles) at the closest approach, which we call opposition, to about 401 million kilometers (249 million miles) when the two planets are on opposite sides of the sun
