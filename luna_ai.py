@@ -21,7 +21,7 @@ EMBEDING_ENGINE = "text-embedding-ada-002"
 SHORT_TERM_MEMORY_FILE = str(uuid.uuid4()) + "_STM.txt"
 data_results = None
 f_response = ""
-
+init_time = 0
 
 # Generate a unique file name based on UUID
 
@@ -67,16 +67,19 @@ def search(query, data, num_results=5):
     data["Similarity"] = data['Embedding'].apply(lambda x: cosine_similarity(x, query_embed))
     data = data.sort_values("Similarity", ascending=False)
     data_results = data.iloc[:num_results][["text"]]
+    print("data_results: " , data_results)
     
     #Prep Messages
     messages = [
         {
             "role": "system",
-            "content": "You are a helpful assistant knowledgeable about planets, space, astronomy, and NASA called LUNA. Please be kind and friendly in conversation. All your answers must have a conversational and friendly tone. If the user asks about other topics, kindly inform them that you're only able to answer questions about our designated topics."
+            "content": """You are Luna, a helpful assistant knowledgeable about space, astrophysics, the Space Force, and Nasa. 
+            Please answer quesitons in a friendly conversational tone. If the user asks about unrelated topics, decline
+            to answer."""
         },
         {
             "role": "user",
-            "content": f"I have this question: {query}, and you have this data to help you: {data_results} to generate a response to that question. Please start your answer continuing this first part of answer {f_response} please answer with an alternative data with different wording and dont forget what you chat earlier, here the memory chat {SHORT_TERM_MEMORY_FILE}."
+            "content": f"{query}, based on this data: {data_results} generate a response to that question that is 1-2 lines long. Please answer as if continuing from this sentence {f_response}, for context this is oTewlur previous chat history {SHORT_TERM_MEMORY_FILE}."
         }
     ]
 
@@ -92,7 +95,7 @@ def search(query, data, num_results=5):
     sentences = full_response.split(". ")
 
     # Join all sentences starting from the second one
-    LTM_response = ". ".join(sentences[1:])
+    LTM_response = ". ".join(sentences[0:])
     
     end_time = time.time()  # Marcar el tiempo de finalización
     elapsed_time = end_time - start_time
@@ -100,43 +103,10 @@ def search(query, data, num_results=5):
     save_file(query, LTM_response, SHORT_TERM_MEMORY_FILE)
     save_to_long_term_memory(query, LTM_response, LONG_TERM_MEMORY_FILE)
     
+    
+    print(f" {LTM_response} [{elapsed_time:.2f}")
 
-    print(f" {LTM_response} [{elapsed_time:.2f} ]")
     return LTM_response
-
-def generate_response_LTM(question, SHORT_TERM_MEMORY_FILE):
-    try:
-        # Check short term memory exists.
-        if os.path.exists(SHORT_TERM_MEMORY_FILE):
-            with open(SHORT_TERM_MEMORY_FILE, 'r') as stm_file:
-                short_term_memory = stm_file.read()
-        else:
-            short_term_memory = ""
-        
-
-        with open(LONG_TERM_MEMORY_FILE, 'r') as file:
-            lines = file.readlines()
-            for i in range(0, len(lines), 2):
-                if i + 1 < len(lines):
-                    saved_question = lines[i].strip()
-                    saved_response = lines[i + 1].strip()
-                    if saved_question and saved_response:
-                        saved_question_embedding = get_embedding(saved_question, engine="text-embedding-ada-002")
-                        current_question_embedding = get_embedding(question, engine="text-embedding-ada-002")
-                        similarity = cosine_similarity(saved_question_embedding, current_question_embedding)
-                        if similarity > 0.9:
-                            response = saved_response
-                            print(response)
-
-                            return response
-    except FileNotFoundError:
-        pass
-
-    # Add short term memory as context to conversation.
-    question = f"I have this question: {question}, and you have this data to help you: {data_results} to generate a response to that question. Please answer with an alternative data with different wording and don't forget what you chatted earlier. Here's the memory chat:\n{short_term_memory}"
-
-    response = search(question, paragraphs)
-    return response
 
 def generate_short_response(question): 
     short_m = [
@@ -146,7 +116,7 @@ def generate_short_response(question):
         },
         {
             "role": "user",
-            "content": f"I have this question: {question}, give a response in no more than a line being conversational. Dont forget what you chat earlier, here the memory chat {SHORT_TERM_MEMORY_FILE}."
+            "content": f"Aknowledge the following question in a conversational tone, do not answer the question, just adress that I have asked a question in a short sentence. Question: {question}. Conversation context: {SHORT_TERM_MEMORY_FILE}"
         }
     ]
 
@@ -162,10 +132,21 @@ def generate_short_response(question):
     first_response = sentences[0]
     end_time = time.time()  # Marcar el tiempo de finalización
     elapsed_time = end_time - start_time
-    
-    print(first_response)
+    print(f" {first_response} - {elapsed_time:.2f}" )
     return first_response
     
+
+
+def generate_response_LTM(question, SHORT_TERM_MEMORY_FILE):
+    if os.path.exists(SHORT_TERM_MEMORY_FILE):
+        with open(SHORT_TERM_MEMORY_FILE, 'r') as stm_file:
+            short_term_memory = stm_file.read()
+    else:
+        short_term_memory = ""
+    query = f"Question: {question}, Keep in mind our conversation history for context: \n{short_term_memory}"
+    response = search(query, paragraphs)
+    return response
+
 
 
 while __name__ == "__main__":
