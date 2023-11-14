@@ -67,7 +67,7 @@ def search(query, data, num_results=5):
     data["Similarity"] = data['Embedding'].apply(lambda x: cosine_similarity(x, query_embed))
     data = data.sort_values("Similarity", ascending=False)
     data_results = data.iloc[:num_results][["text"]]
-    print("data_results: " , data_results)
+
     
     #Prep Messages
     messages = [
