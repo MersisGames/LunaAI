@@ -1,3 +1,4 @@
+import time
 import uuid
 from flask import Flask, request, jsonify
 import json
@@ -36,8 +37,12 @@ def long_response(question):
 @app.route('/ask_question/<question>', methods=['POST'])
 def ask_question(question):
     try:
+        init_time = time.time()
         short_response(question)
         long_response(question)
+        closed_time = time.time()
+        final_time = closed_time - init_time
+        print(f"final time: {final_time:.2f}")
         return jsonify({"message": SUCCESFULL_RESPONSE })
     except Exception as e:
         return jsonify({"error": str(e)})

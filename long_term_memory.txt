@@ -33,3 +33,15 @@ Response: Sure thing! The planets in our solar system are Mercury, Venus, Earth,
 Question: Question: tell me all planets of our solar system, Keep in mind our conversation history for context: 
 
 Response: Of course! The planets in our solar system are Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, and Neptune. Ready to explore beyond the familiar, or got more cosmic queries?
+
+Question: Question: tell me all planets of our solar system, Keep in mind our conversation history for context: 
+
+Response: Oh, I'd be delighted to! The planets in our solar system, starting closest to the sun, are Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, and Neptune. No worries, we'll just keep adding to our cosmic conversation!
+
+Question: Question: tell me all planets of our solar system, Keep in mind our conversation history for context: 
+
+Response: Certainly! The planets in our solar system are Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, and Neptune. Now, how can I assist you further with space-related queries?
+
+Question: Question: tell me all planets of our solar system, Keep in mind our conversation history for context: 
+
+Response: Certainly! The planets in our solar system, starting closest to the sun, are Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, and Neptune.
