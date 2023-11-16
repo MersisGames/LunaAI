@@ -33,10 +33,22 @@ def long_response(question):
         json.dump({"response": long_response}, json_file)
     return jsonify({"message": SUCCESFULL_RESPONSE })
 
+def clean_json_files(short_response_file, long_response_file):
+    try:
+        if os.path.exists(short_response_file):
+            os.remove(short_response_file)
+        if os.path.exists(long_response_file):
+            os.remove(long_response_file)
+        return jsonify({"message": "JSON files cleaned successfully"})
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
+
 
 @app.route('/ask_question/<question>', methods=['POST'])
 def ask_question(question):
     try:
+        clean_json_files(SHORT_RESPONSE_FILE, LONG_RESPONSE_FILE)
         init_time = time.time()
         short_response(question)
         long_response(question)

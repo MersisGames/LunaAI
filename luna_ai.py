@@ -40,7 +40,7 @@ def init_data():
         split = CharacterTextSplitter(chunk_size=400, separator='.\n')
         texts = split.split_documents(pages)
         texts = [str(i.page_content) for i in texts]  # List of paragraphs
-
+        
         paragraphs["text"] = texts
         paragraphs['Embedding'] = paragraphs["text"].apply(lambda x: get_embedding(x, engine='text-embedding-ada-002'))
         paragraphs.to_csv(NEW_DATA_FILE)
@@ -48,18 +48,21 @@ def init_data():
         print("File 'newData.csv' is already populated.")
 
 
-#TODO: Check why we have two identical functions with different names
+
 def save_to_long_term_memory(question, response, file):
     with open(file, 'a') as f:
+        print("Saving to long term memory")
         f.write(f'\n\nQuestion: {question}\nResponse: {response}')
 
-def save_file(question, response, file):
+def save_to_short_term_memory(question, response, file):
     with open(file, 'a') as f:
+        print("Saving to short term memory")
         f.write(f'\n\nQuestion: {question}\nResponse: {response}')
 
 def delete_file(file):
     if os.path.exists(file):
         os.remove(file)
+
 
 
 def search(query, data, num_results=5):
@@ -68,18 +71,17 @@ def search(query, data, num_results=5):
     data = data.sort_values("Similarity", ascending=False)
     data_results = data.iloc[:num_results][["text"]]
 
-    
     #Prep Messages
     messages = [
         {
             "role": "system",
-            "content": """You are Luna, a helpful assistant knowledgeable about space, astrophysics, the Space Force, and Nasa. 
+            "content": f"""You are Luna, a helpful assistant knowledgeable about space, astrophysics, the Space Force, and Nasa. 
             Please answer quesitons in a friendly conversational tone. If the user asks about unrelated topics, decline
-            to answer."""
+            to answer. """
         },
         {
             "role": "user",
-            "content": f"{query}, based on this data: {data_results} generate a response to that question that is 1-2 lines long. Please answer as if continuing from this sentence {f_response}, for context this is oTewlur previous chat history {SHORT_TERM_MEMORY_FILE}."
+            "content": f"{query}, based on this data: {data_results} generate a response to that question that is 1-2 lines long. Please answer as if continuing from this sentence {f_response}, for context this is our previous chat history {SHORT_TERM_MEMORY_FILE}."
         }
     ]
 
@@ -100,13 +102,14 @@ def search(query, data, num_results=5):
     end_time = time.time()  # Marcar el tiempo de finalización
     elapsed_time = end_time - start_time
 
-    save_file(query, LTM_response, SHORT_TERM_MEMORY_FILE)
+    save_to_short_term_memory(query, LTM_response, SHORT_TERM_MEMORY_FILE)
     save_to_long_term_memory(query, LTM_response, LONG_TERM_MEMORY_FILE)
     
     
     print(f" {LTM_response} [{elapsed_time:.2f}")
 
     return LTM_response
+
 
 def generate_short_response(question): 
     short_m = [
@@ -143,7 +146,14 @@ def generate_response_LTM(question, SHORT_TERM_MEMORY_FILE):
             short_term_memory = stm_file.read()
     else:
         short_term_memory = ""
-    query = f"Question: {question}, Keep in mind our conversation history for context: \n{short_term_memory}"
+        
+    if os.path.exists(LONG_TERM_MEMORY_FILE):
+        with open(LONG_TERM_MEMORY_FILE, 'r') as ltm_file:
+            long_term_memory = ltm_file.read()
+    else:
+        long_term_memory = ""
+  
+    query = f"Question: {question}, Keep in mind our conversation history for context: \n{short_term_memory} \n also keep in mind all conversation history in case you need {long_term_memory}"
     response = search(query, paragraphs)
     return response
 
