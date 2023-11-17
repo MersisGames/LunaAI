@@ -35,10 +35,16 @@ def long_response(question):
 
 def clean_json_files(short_response_file, long_response_file):
     try:
+        clean_response = {"response": " "}
+        
         if os.path.exists(short_response_file):
-            os.remove(short_response_file)
+            with open(short_response_file, 'w') as json_file:
+                json.dump(clean_response, json_file)
+                
         if os.path.exists(long_response_file):
-            os.remove(long_response_file)
+            with open(long_response_file, 'w') as json_file:
+                json.dump(clean_response, json_file)
+                
         return jsonify({"message": "JSON files cleaned successfully"})
     except Exception as e:
         return jsonify({"error": str(e)})
