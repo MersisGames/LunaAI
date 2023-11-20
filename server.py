@@ -45,9 +45,10 @@ def clean_json_files(short_response_file, long_response_file):
             with open(long_response_file, 'w') as json_file:
                 json.dump(clean_response, json_file)
                 
-        return jsonify({"message": "JSON files cleaned successfully"})
+        return {"message": "JSON files cleaned successfully"}
     except Exception as e:
-        return jsonify({"error": str(e)})
+        return {"error": str(e)}
+
 
 
 
