@@ -91,6 +91,7 @@ def get_long_response():
 
 if __name__ == '__main__':
     try:
+        clean_json_files(SHORT_RESPONSE_FILE,LONG_RESPONSE_FILE)
         with open('responses.json', 'r') as json_file:
             response_data = json.load(json_file)
     except FileNotFoundError:
