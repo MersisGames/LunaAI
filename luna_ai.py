@@ -8,6 +8,7 @@ import constants
 import requests
 
 from openai.embeddings_utils import get_embedding, cosine_similarity
+
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
 
@@ -20,7 +21,6 @@ EMBEDING_ENGINE = "text-embedding-ada-002"
 #VARIABLES
 SHORT_TERM_MEMORY_FILE = str(uuid.uuid4()) + "_STM.txt"
 data_results = None
-f_response = ""
 init_time = 0
 
 # Generate a unique file name based on UUID
@@ -51,12 +51,10 @@ def init_data():
 
 def save_to_long_term_memory(question, response, file):
     with open(file, 'a') as f:
-        print("Saving to long term memory")
         f.write(f'\n\nQuestion: {question}\nResponse: {response}')
 
 def save_to_short_term_memory(question, response, file):
     with open(file, 'a') as f:
-        print("Saving to short term memory")
         f.write(f'\n\nQuestion: {question}\nResponse: {response}')
 
 def delete_file(file):
@@ -65,23 +63,20 @@ def delete_file(file):
 
 
 
-def search(query, data, num_results=5):
-    query_embed = get_embedding(query, engine=EMBEDING_ENGINE)
-    data["Similarity"] = data['Embedding'].apply(lambda x: cosine_similarity(x, query_embed))
-    data = data.sort_values("Similarity", ascending=False)
-    data_results = data.iloc[:num_results][["text"]]
-
-    #Prep Messages
+def search(query):
+    # query_embed = get_embedding(query, engine=EMBEDING_ENGINE)
+    # data["Similarity"] = data['Embedding'].apply(lambda x: cosine_similarity(x, query_embed))
+    # data = data.sort_values("Similarity", ascending=False)
+    # data_results = data.iloc[:num_results][["text"]]
     messages = [
         {
             "role": "system",
             "content": f"""You are Luna, a helpful assistant knowledgeable about space, astrophysics, the Space Force, and Nasa. 
-            Please answer quesitons in a friendly conversational tone. If the user asks about unrelated topics, decline
-            to answer. """
+            Please answer quesitons in a friendly conversational tone. If the user asks about unrelated topics, don't answer anything. """
         },
         {
             "role": "user",
-            "content": f"{query}, based on this data: {data_results} generate a response to that question that is 1-2 lines long. Please answer as if continuing from this sentence {f_response}, for context this is our previous chat history {SHORT_TERM_MEMORY_FILE}."
+            "content": f"{query}, generate a response to that question that is 1-2 lines long. for context this is our previous chat history {SHORT_TERM_MEMORY_FILE}."
         }
     ]
 
@@ -92,71 +87,63 @@ def search(query, data, num_results=5):
         messages=messages,
         max_tokens=100,
     ).choices[0].message["content"]
-    
-   # Split the text into sentences using ". " as the delimiter
     sentences = full_response.split(". ")
-
-    # Join all sentences starting from the second one
     LTM_response = ". ".join(sentences[0:])
-    
-    end_time = time.time()  # Marcar el tiempo de finalización
+    end_time = time.time()  
     elapsed_time = end_time - start_time
-
     save_to_short_term_memory(query, LTM_response, SHORT_TERM_MEMORY_FILE)
     save_to_long_term_memory(query, LTM_response, LONG_TERM_MEMORY_FILE)
-    
-    
     print(f" {LTM_response} [{elapsed_time:.2f}")
 
     return LTM_response
 
 
-def generate_short_response(question): 
-    short_m = [
-        {
-            "role": "system",
-            "content": "You are a helpful assistant knowledgeable about planets, space, astronomy, and NASA called LUNA. Please be kind and friendly in conversation. All your answers must have a conversational and friendly tone. If the user asks about other topics, kindly inform them that you're only able to answer questions about our designated topics."
-        },
-        {
-            "role": "user",
-            "content": f"Aknowledge the following question in a conversational tone, do not answer the question, just adress that I have asked a question in a short sentence. Question: {question}. Conversation context: {SHORT_TERM_MEMORY_FILE}"
-        }
-    ]
+# def generate_short_response(question): 
+#     short_m = [
+#         {
+#             "role": "system",
+#             "content": "You are a helpful assistant knowledgeable about planets, space, astronomy, and NASA called LUNA. Please be kind and friendly in conversation. All your answers must have a conversational and friendly tone. If the user asks about other topics, kindly inform them that you're only able to answer questions about our designated topics."
+#         },
+#         {
+#             "role": "user",
+#             "content": f"Aknowledge the following question in a conversational tone, do not answer the question, just adress that I have asked a question in a short sentence. Question: {question}. Conversation context: {SHORT_TERM_MEMORY_FILE}"
+#         }
+#     ]
 
-    start_time = time.time()
+#     start_time = time.time()
     
-    # Create a conversation with ChatGPT
-    quick_response = openai.ChatCompletion.create(
-        model="gpt-4-1106-preview",
-        messages=short_m,
-        max_tokens=200,
-    ).choices[0].message["content"]
-    sentences = quick_response.split(". ")
-    first_response = sentences[0]
-    end_time = time.time()  # Marcar el tiempo de finalización
-    elapsed_time = end_time - start_time
-    print(f" {first_response} - {elapsed_time:.2f}" )
-    return first_response
+#     # Create a conversation with ChatGPT
+#     quick_response = openai.ChatCompletion.create(
+#         model="gpt-4-1106-preview",
+#         messages=short_m,
+#         max_tokens=200,
+#     ).choices[0].message["content"]
+#     sentences = quick_response.split(". ")
+#     first_response = sentences[0]
+#     end_time = time.time()  # Marcar el tiempo de finalización
+#     elapsed_time = end_time - start_time
+#     print(f" {first_response} - {elapsed_time:.2f}" )
+#     return first_response
     
 
 
-def generate_response_LTM(question, SHORT_TERM_MEMORY_FILE):
+def generate_response_LTM(question, SHORT_TERM_MEMORY_FILE, unity_string):
     if os.path.exists(SHORT_TERM_MEMORY_FILE):
         with open(SHORT_TERM_MEMORY_FILE, 'r') as stm_file:
             short_term_memory = stm_file.read()
     else:
         short_term_memory = ""
-        
+
     if os.path.exists(LONG_TERM_MEMORY_FILE):
         with open(LONG_TERM_MEMORY_FILE, 'r') as ltm_file:
             long_term_memory = ltm_file.read()
     else:
         long_term_memory = ""
-  
-    query = f"Question: {question}, Keep in mind our conversation history for context: \n{short_term_memory} \n also keep in mind all conversation history in case you need {long_term_memory}"
-    response = search(query, paragraphs)
-    return response
 
+    #query = f"Question: {question} Keep in mind our conversation history for context: \n{short_term_memory} \n also keep in mind all conversation history in case you need {long_term_memory}"
+    response = search(question)
+    response_with_unity = f"{unity_string} {response}"
+    return response_with_unity
 
 
 while __name__ == "__main__":
@@ -164,5 +151,7 @@ while __name__ == "__main__":
     if question.lower() == "exit":
         delete_file(SHORT_TERM_MEMORY_FILE)
         break
-    generate_short_response(question)
+    #generate_short_response(question)
     response = generate_response_LTM(question, SHORT_TERM_MEMORY_FILE)
+    
+    
