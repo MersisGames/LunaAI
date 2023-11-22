@@ -57,7 +57,7 @@ def ask_question(question, unity_string):
         clean_json_files(LONG_RESPONSE_FILE)
         init_time = time.time()
         # short_response(question)
-        long_response(question, unity_string)  # Pasa el unity_string como argumento
+        long_response(question, unity_string)  
         closed_time = time.time()
         final_time = closed_time - init_time
         print(f"final time: {final_time:.2f}")

@@ -63,11 +63,11 @@ def delete_file(file):
 
 
 
-def search(query):
-    # query_embed = get_embedding(query, engine=EMBEDING_ENGINE)
-    # data["Similarity"] = data['Embedding'].apply(lambda x: cosine_similarity(x, query_embed))
-    # data = data.sort_values("Similarity", ascending=False)
-    # data_results = data.iloc[:num_results][["text"]]
+def search(query, data):
+    query_embed = get_embedding(query, engine=EMBEDING_ENGINE)
+    data["Similarity"] = data['Embedding'].apply(lambda x: cosine_similarity(x, query_embed))
+    data = data.sort_values("Similarity", ascending=False)
+    data_results = data.iloc[:5][["text"]]
     messages = [
         {
             "role": "system",
@@ -76,7 +76,7 @@ def search(query):
         },
         {
             "role": "user",
-            "content": f"{query}, generate a response to that question that is 1-2 lines long. for context this is our previous chat history {SHORT_TERM_MEMORY_FILE}."
+            "content": f"{query}, generate a response to that question using this data:{data_results} that is 1-2 lines long. for context this is our previous chat history {SHORT_TERM_MEMORY_FILE}."
         }
     ]
 
@@ -141,7 +141,7 @@ def generate_response_LTM(question, SHORT_TERM_MEMORY_FILE, unity_string):
         long_term_memory = ""
 
     #query = f"Question: {question} Keep in mind our conversation history for context: \n{short_term_memory} \n also keep in mind all conversation history in case you need {long_term_memory}"
-    response = search(question)
+    response = search(question, paragraphs)
     response_with_unity = f"{unity_string} {response}"
     return response_with_unity
 
