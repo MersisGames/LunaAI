@@ -76,7 +76,7 @@ def search(query, data):
         },
         {
             "role": "user",
-            "content": f"{query}, generate a response to that question using this data:{data_results} that is 1-2 lines long. for context this is our previous chat history {SHORT_TERM_MEMORY_FILE}."
+            "content": f"{query}, in case you need, generate a response to that question using this data:{data_results} that is 1-2 lines long. for context this is our previous chat history {SHORT_TERM_MEMORY_FILE}."
         }
     ]
 
