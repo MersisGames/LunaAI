@@ -22,15 +22,13 @@ EMBEDING_ENGINE = "text-embedding-ada-002"
 SHORT_TERM_MEMORY_FILE = str(uuid.uuid4()) + "_STM.txt"
 data_results = None
 init_time = 0
+default_string = "Excelent question, let me get back to you on that"
 
 # Generate a unique file name based on UUID
 
 #INIT
 openai.api_key = constants.APIKEY 
 paragraphs = pd.DataFrame(columns=["text", "Embedding"])
-
-
-
 
 # Load data if it doesn't exist
 def init_data():
@@ -63,7 +61,7 @@ def delete_file(file):
 
 
 
-def search(query, data):
+def search(query, data, placeholder):
     query_embed = get_embedding(query, engine=EMBEDING_ENGINE)
     data["Similarity"] = data['Embedding'].apply(lambda x: cosine_similarity(x, query_embed))
     data = data.sort_values("Similarity", ascending=False)
@@ -76,7 +74,13 @@ def search(query, data):
         },
         {
             "role": "user",
-            "content": f"{query}, in case you need, generate a response to that question using this data:{data_results} that is 1-2 lines long. for context this is our previous chat history {SHORT_TERM_MEMORY_FILE}."
+            "content": f"""Prompt:{query}, generate a response to that prompt based on this data:{data_results} that is 1-2 lines long.
+              for context this is our previous chat history {SHORT_TERM_MEMORY_FILE}.
+             Generate your response as if continuing from this sentence {placeholder}
+            At the beggining of your response, start with an emotion tag [EMOTION], choose one of the following depending on how
+            the prompt made you (Luna) feel: NEUTRAL, HAPPY, SAD, INTRIGUED, ANGRY, DISGUSTED, SCARED.
+            Do not use emojis, only use the metric system.
+            """
         }
     ]
 
@@ -96,6 +100,25 @@ def search(query, data):
     print(f" {LTM_response} [{elapsed_time:.2f}")
 
     return LTM_response
+
+def generate_response_LTM(question, SHORT_TERM_MEMORY_FILE, unity_string):
+    if os.path.exists(SHORT_TERM_MEMORY_FILE):
+        with open(SHORT_TERM_MEMORY_FILE, 'r') as stm_file:
+            short_term_memory = stm_file.read()
+    else:
+        short_term_memory = ""
+
+    if os.path.exists(LONG_TERM_MEMORY_FILE):
+        with open(LONG_TERM_MEMORY_FILE, 'r') as ltm_file:
+            long_term_memory = ltm_file.read()
+    else:
+        long_term_memory = ""
+
+    #query = f"Question: {question} Keep in mind our conversation history for context: \n{short_term_memory} \n also keep in mind all conversation history in case you need {long_term_memory}"
+    response = search(question, paragraphs, unity_string)
+    response_with_unity = f"{response}"
+    return response_with_unity
+
 
 
 # def generate_short_response(question): 
@@ -124,27 +147,6 @@ def search(query, data):
 #     elapsed_time = end_time - start_time
 #     print(f" {first_response} - {elapsed_time:.2f}" )
 #     return first_response
-    
-
-
-def generate_response_LTM(question, SHORT_TERM_MEMORY_FILE, unity_string):
-    if os.path.exists(SHORT_TERM_MEMORY_FILE):
-        with open(SHORT_TERM_MEMORY_FILE, 'r') as stm_file:
-            short_term_memory = stm_file.read()
-    else:
-        short_term_memory = ""
-
-    if os.path.exists(LONG_TERM_MEMORY_FILE):
-        with open(LONG_TERM_MEMORY_FILE, 'r') as ltm_file:
-            long_term_memory = ltm_file.read()
-    else:
-        long_term_memory = ""
-
-    #query = f"Question: {question} Keep in mind our conversation history for context: \n{short_term_memory} \n also keep in mind all conversation history in case you need {long_term_memory}"
-    response = search(question, paragraphs)
-    response_with_unity = f"{unity_string} {response}"
-    return response_with_unity
-
 
 while __name__ == "__main__":
     question = input("Question: ")
