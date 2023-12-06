@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ask Questions</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+            color: #333;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #555;
+        }
+
+        form {
+            max-width: 400px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        input,
+        select,
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #3498db;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        hr {
+            margin: 40px 0;
+            border: none;
+            border-top: 1px solid #ddd;
+        }
+
+        #chatGPTResponse {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ask Questions</h1>
+
+    <form id="questionForm">
+        <label for="query">Enter your question:</label>
+        <input type="text" id="query" name="query" required>
+        <br>
+
+        <label for="csvSelect">Select Topic:</label>
+        <select id="csvSelect" name="csvSelect" required>
+            {% for csv_option in csv_options %}
+                <option value="{{ csv_option }}">{{ csv_option }}</option>
+            {% endfor %}
+        </select>
+        <br>
+
+        <button type="button" onclick="processQuestions()">Ask</button>
+    </form>
+    <a href="/" style="color: #3498db; text-decoration: none;">Back</a>
+
+    <hr>
+
+    <h2>Response</h2>
+    <div id="chatGPTResponse"></div>
+
+    <script>
+        function processQuestions() {
+            var query = document.getElementById('query').value;
+            var csvSelect = document.getElementById('csvSelect');
+            var csvSelected = csvSelect.options[csvSelect.selectedIndex].value;
+    
+            fetch('/process_questions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'query=' + encodeURIComponent(query) + '&csvSelect=' + encodeURIComponent(csvSelected),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('chatGPTResponse').innerHTML = ' ' + data.response;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+    
+</body>
+</html>
