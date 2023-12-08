@@ -1,4 +1,5 @@
 import os
+from docx import Document
 import openai
 import pandas as pd
 import uuid
@@ -6,12 +7,13 @@ import numpy as np
 import time
 import constants
 import requests
-
+import subprocess
+from flask import Flask, flash, render_template, request, jsonify
 from openai.embeddings_utils import get_embedding, cosine_similarity
-
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
 
+app = Flask(__name__)
 #CONSTANTS
 LONG_TERM_MEMORY_FILE = "long_term_memory.txt" 
 NEW_DATA_FILE = 'newData.csv'
@@ -23,14 +25,23 @@ SHORT_TERM_MEMORY_FILE = str(uuid.uuid4()) + "_STM.txt"
 data_results = None
 init_time = 0
 default_string = "Excelent question, let me get back to you on that"
-
-# Generate a unique file name based on UUID
+user_personality = ""
+user_prompt = ""
 
 #INIT
 openai.api_key = constants.APIKEY 
 paragraphs = pd.DataFrame(columns=["text", "Embedding"])
 
-# Load data if it doesn't exist
+def embed_text(data, engine="text-embedding-ada-002"):
+    data['Embedding'] = data['text'].apply(lambda x: get_embedding(x, engine=engine))
+    return data
+
+def search_emb(query, data, n_results=5):
+    query_embedding = get_embedding(query, engine="text-embedding-ada-002")
+    data["Similarity"] = data['Embedding'].apply(lambda x: cosine_similarity(x, query_embedding))
+    data = data.sort_values("Similarity", ascending=False)
+    return data.iloc[:n_results][["text", "Similarity", "Embedding"]]
+
 def init_data():
     if not os.path.exists(NEW_DATA_FILE) or os.path.getsize(NEW_DATA_FILE) == 0:
         loader = PyPDFLoader("../solarData.pdf")
@@ -44,8 +55,47 @@ def init_data():
         paragraphs.to_csv(NEW_DATA_FILE)
     else:
         print("File 'newData.csv' is already populated.")
+        
+def process_file(file_path, paragraphs):
+    _, file_extension = os.path.splitext(file_path)
+
+    if file_extension == '.pdf':
+        loader = PyPDFLoader(file_path)
+        pages = loader.load_and_split()
+        # One element for each page
+        split = CharacterTextSplitter(chunk_size=300, separator='.\n')
+        texts = split.split_documents(pages)  # List of texts
+
+    elif file_extension == '.txt':
+        with open(file_path, 'r', encoding='utf-8') as file:
+            text_content = file.read()
+            # One element for each page
+            split = CharacterTextSplitter(chunk_size=300, separator='.\n')
+            texts = split.split_text(text_content)  # List of texts
+
+    elif file_extension == '.docx':
+        doc = Document(file_path)
+        text_content = "\n".join([paragraph.text for paragraph in doc.paragraphs])
+        # One element for each page
+        split = CharacterTextSplitter(chunk_size=300, separator='.\n')
+        texts = split.split_text(text_content)  # List of texts
+
+    else:
+        print(f"Error: Unsupported file type '{file_extension}'.")
+        return None
+    
+# Función para cargar el archivo CSV y aplicar la función de embedding
+def load_csv(csv_path, engine="text-embedding-ada-002"):
+    data = pd.read_csv(csv_path)
+    data = embed_text(data, engine=engine)
+    return data
+
+def read_file_content(file_path, encoding='utf-8'):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        return file.read()
 
 
+    
 
 def save_to_long_term_memory(question, response, file):
     with open(file, 'a') as f:
@@ -65,13 +115,16 @@ def search(query, data, placeholder, short_term_memory):
     data["Similarity"] = data['Embedding'].apply(lambda x: cosine_similarity(x, query_embed))
     data = data.sort_values("Similarity", ascending=False)
     data_results = data.iloc[:5][["text"]]
-    
+    personality_content = user_personality
+    prompt_content = user_prompt
     messages = [
         {
             "role": "system",
             "content": f"""You are Luna, a helpful assistant knowledgeable about space, astrophysics, the Space Force, and Nasa. 
             Please answer quesitons in a friendly conversational tone. If the user asks about unrelated topics, don't answer anything. 
-            When asked for an opinion, make up an opinion to present as your own opinions based on positive popular opinions"""
+            When asked for an opinion, make up an opinion to present as your own opinions based on positive popular opinions
+            Additional Personality Content: {personality_content}
+            """
         },
         {
             "role": "user",
@@ -80,7 +133,8 @@ def search(query, data, placeholder, short_term_memory):
             by generating a response to that prompt based on this data:{data_results} that is 1-2 lines long.
             At the beginning of your response, start with an emotion tag [EMOTION], choose one of the following depending on how
             the prompt made you (Luna) feel: NEUTRAL, HAPPY, SAD, INTRIGUED, ANGRY, DISGUSTED, SCARED, EXCITED.
-            Do not use emojis, only use the metric system.
+            Do not use emojis, only use the metric system. 
+            Additional Prompt Content: {prompt_content}
             """
         }
         #Generate your response as if continuing from the following sentence: {placeholder}, do not include that sentence in your reply.
