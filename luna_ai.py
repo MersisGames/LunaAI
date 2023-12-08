@@ -140,8 +140,8 @@ def search(query, data, placeholder, short_term_memory):
             "content": f"""Prompt: We are having a conversation, this is our conversation so far: {short_term_memory}. 
             Please reply to this query: {query},
             by generating a response to that prompt based on this data:{data_results} that is 1-2 lines long.
-            At the beginning of your response, start with an emotion tag [EMOTION], choose one of the following depending on how
-            the prompt made you (Luna) feel: NEUTRAL, HAPPY, SAD, INTRIGUED, ANGRY, DISGUSTED, SCARED, EXCITED.
+            At the beginning of your response, start with an emotion tag in the following format:[EMOTION] , choose one of the following depending on how
+            the prompt made you (Luna) feel, choose one of these emotion tags: [NEUTRAL], [HAPPY], [SAD], [INTRIGUED], [ANGRY], [DISGUSTED], [SCARED], [EXCITED].
             Do not use emojis, only use the metric system. 
             Additional Prompt Content: {prompt_content}
             """
