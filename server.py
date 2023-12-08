@@ -3,7 +3,6 @@ import uuid
 from flask import Flask, render_template, request, jsonify
 import json
 import os
-
 import openai 
 
 #from luna_ai import generate_short_response as generate_short_response_bot
@@ -16,7 +15,7 @@ SHORT_RESPONSE_FILE = 'shortResponse.json'
 LONG_RESPONSE_FILE = 'longResponse.json'
 
 response_data = {}
-
+paragraphs = " "
 SHORT_TERM_MEMORY_FILE = str(uuid.uuid4()) + "_STM.txt" 
 
 
@@ -47,7 +46,7 @@ def process():
     file_path = os.path.join(uploads_dir, unique_filename)
     file.save(file_path)
     paragraphs = process_file(file_path, paragraphs)
-
+    print("paragraphs: ", paragraphs)
     if paragraphs is not None:
         csv_files_dir = 'csv_files'
         os.makedirs(csv_files_dir, exist_ok=True)

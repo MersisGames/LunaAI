@@ -84,6 +84,15 @@ def process_file(file_path, paragraphs):
         print(f"Error: Unsupported file type '{file_extension}'.")
         return None
     
+    
+     # Extract the page_content from each text and convert it into a DataFrame
+    texts = [str(i.page_content) for i in texts]  # List of paragraphs
+    paragraphs = pd.DataFrame(texts, columns=["text"])
+
+    paragraphs['Embedding'] = paragraphs["text"].apply(lambda x: get_embedding(x, engine='text-embedding-ada-002'))
+    return paragraphs
+
+
 # Función para cargar el archivo CSV y aplicar la función de embedding
 def load_csv(csv_path, engine="text-embedding-ada-002"):
     data = pd.read_csv(csv_path)
