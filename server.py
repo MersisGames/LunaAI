@@ -85,9 +85,7 @@ def process_questions():
         messages = [
             {
                 "role": "system",
-                "content": f"""You are a helpful assistant knowledgeable about {topic}
-                Please answer questions in a friendly conversational tone. If the user asks about unrelated topics, don't answer anything. 
-                When asked for an opinion, make up an opinion to present as your own opinions based on positive popular opinions. Additional Personality Content: {personality_content}"""
+                "content": f"""{personality_content}"""
             },
             {
                 "role": "user",
