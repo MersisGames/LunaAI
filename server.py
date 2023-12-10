@@ -157,8 +157,10 @@ def save_files():
         user_personality = personality_content
         user_prompt = prompt_content
      
-        session['csv_selected'] = csv_files[0] 
+        selected_csv = request.form['csvSelect']
+        session['csv_selected'] = selected_csv
         csv_file_server = session['csv_selected']
+        print('Selected CSV:', csv_file_server)
         
         return render_template('bot.html', csv_options=csv_files, per_files=per_files, prompt_files=prompt_files)
 
