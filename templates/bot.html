@@ -203,7 +203,7 @@
         var customCsv = prompt("Enter CSV filename (optional):");
 
         // Construye la URL con la pregunta y, opcionalmente, el nombre del archivo CSV
-        var url = '/ask_bot/' + (customCsv ? customCsv + '/' : '') + query;
+        var url = '/ask_question/' + (customCsv ? customCsv + '/' : '') + query;
 
         // Realiza una redirección a la ruta /ask_bot con la pregunta y, opcionalmente, el nombre del archivo CSV
         window.location.href = url;

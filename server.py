@@ -1,14 +1,23 @@
 import time
+import traceback
 import uuid
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session
 import json
 import os
 import openai 
 
 #from luna_ai import generate_short_response as generate_short_response_bot
-from luna_ai import generate_response_LTM as generate_response_LTM_bot, load_csv, process_file, read_file_content, search_emb
+from luna_ai import generate_response_LTM as generate_response_LTM_bot, load_csv, process_file, read_file_content, save_to_long_term_memory, save_to_short_term_memory, search_emb
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24) 
+
+@app.before_request
+def before_request():
+    if 'csv_selected' not in session:
+        session['csv_selected'] = None
+        
+LONG_TERM_MEMORY_FILE = "long_term_memory.txt" 
 SUCCESFULL_RESPONSE = "Successfully response generated and saved"
 ERROR_RESPONOSE = "No response found"
 SHORT_RESPONSE_FILE = 'shortResponse.json'
@@ -16,6 +25,7 @@ LONG_RESPONSE_FILE = 'longResponse.json'
 
 response_data = {}
 paragraphs = " "
+csv_file_server = " "
 SHORT_TERM_MEMORY_FILE = str(uuid.uuid4()) + "_STM.txt" 
 
 
@@ -111,13 +121,12 @@ def process_questions():
     return jsonify({'message': 'Resultados impresos en la consola.'})
 
 
-
 @app.route('/save_files', methods=['POST'])
 def save_files():
     try:
         global user_personality
         global user_prompt
-
+        global csv_file_server
         # Guardar en la carpeta "personality"
         personality_file = request.files['personalityFile']
         save_path_personality = os.path.join('personality', personality_file.filename)
@@ -147,8 +156,10 @@ def save_files():
 
         user_personality = personality_content
         user_prompt = prompt_content
-
-
+     
+        session['csv_selected'] = csv_files[0] 
+        csv_file_server = session['csv_selected']
+        
         return render_template('bot.html', csv_options=csv_files, per_files=per_files, prompt_files=prompt_files)
 
     except Exception as e:
@@ -190,18 +201,73 @@ def clean_json_files(long_response_file):
 
 @app.route('/ask_question/<unity_string>/<question>', methods=['POST'])
 def ask_question(question, unity_string):
+    print("Entro a ask question...")
     try:
         clean_json_files(LONG_RESPONSE_FILE)
-        init_time = time.time()
-        # short_response(question)
-        long_response(question, unity_string)  
-        closed_time = time.time()
-        final_time = closed_time - init_time
-        print(f"final time: {final_time:.2f}")
-        return jsonify({"message": SUCCESFULL_RESPONSE})
-    except Exception as e:
-        return jsonify({"error": str(e)})
+        print('limpio')
+        global paragraphs
+        global user_personality
+        global user_prompt
+        global csv_file_server
 
+        # Recuperar el nombre del CSV de la sesión
+        csv_selected = csv_file_server
+        print("Selected:", csv_selected)
+        if csv_selected is None:
+            return jsonify({'error': 'No CSV selected'})
+
+        csv_file_path = os.path.join('csv_files', f'{csv_selected}')
+        paragraphs = load_csv(csv_file_path)
+
+        personality_content = user_personality
+        prompt_content = user_prompt
+        print("Personality Content:", personality_content)
+        print("Prompt Content:", prompt_content)
+
+        results = search_emb(question, paragraphs)
+
+        for index, row in results.iterrows():
+            text_lines = [line.strip() for line in row['text'].split('\n') if line.strip()]
+            cleaned_text = ' '.join(text_lines)
+            topic = os.path.splitext(csv_selected)[0]
+
+            # Construir mensajes con el contenido recibido
+            messages = [
+                {
+                    "role": "system",
+                    "content": f"""{personality_content}
+                    """
+                },
+                {
+                    "role": "user",
+                    "content": f"""Prompt: Please reply to this query: {question},
+                    by generating a response to that prompt based on this data:{cleaned_text} {prompt_content}
+                    """
+                }
+            ]
+
+            # Generar respuesta
+            start_time = time.time()
+            full_response = openai.ChatCompletion.create(
+                model="gpt-4-1106-preview",
+                messages=messages,
+                max_tokens=100,
+            ).choices[0].message["content"]
+            sentences = full_response.split(". ")
+            response = ". ".join(sentences[0:])
+
+            print('Response:', unity_string + ' ' + response)
+            save_to_short_term_memory(question, response, SHORT_TERM_MEMORY_FILE)
+            save_to_long_term_memory(question, response, LONG_TERM_MEMORY_FILE)
+            
+            return jsonify({'response': unity_string + ' ' + response})
+
+        return jsonify({'message': SUCCESFULL_RESPONSE})
+
+    except Exception as e:
+        print("Error:", str(e))
+        traceback.print_exc()  
+        return jsonify({"error": str(e)})
 
 @app.route('/get_short_response', methods=['GET'])
 def get_short_response():
