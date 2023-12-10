@@ -103,7 +103,7 @@ def process_questions():
         # Generar respuesta
     start_time = time.time() 
     full_response = openai.ChatCompletion.create(
-        model="gpt-4-1106-preview",
+        model="gpt-4",
         messages=messages,
         max_tokens=100,
     ).choices[0].message["content"]
