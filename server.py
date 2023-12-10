@@ -85,12 +85,14 @@ def process_questions():
         messages = [
             {
                 "role": "system",
-                "content": f"""{personality_content}"""
+                "content": f"""{personality_content}
+                """
             },
             {
                 "role": "user",
                 "content": f"""Prompt: Please reply to this query: {query},
-                by generating a response to that prompt based on this data:{cleaned_text} that is 1-2 lines long. Additional Prompt Content: {prompt_content}"""
+                by generating a response to that prompt based on this data:{cleaned_text} {prompt_content}
+                """
             }
         ]
 
