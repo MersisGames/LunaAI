@@ -40,7 +40,10 @@ def search_emb(query, data, n_results=5):
     query_embedding = get_embedding(query, engine="text-embedding-ada-002")
     data["Similarity"] = data['Embedding'].apply(lambda x: cosine_similarity(x, query_embedding))
     data = data.sort_values("Similarity", ascending=False)
-    return data.iloc[:n_results][["text", "Similarity", "Embedding"]]
+    if cosine_similarity:
+        return data.iloc[:1][["text", "Similarity", "Embedding"]]
+    else:
+        return data.iloc[:n_results][["text", "Similarity", "Embedding"]]
 
 def init_data():
     if not os.path.exists(NEW_DATA_FILE) or os.path.getsize(NEW_DATA_FILE) == 0:

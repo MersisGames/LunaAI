@@ -17,6 +17,7 @@ def before_request():
     if 'csv_selected' not in session:
         session['csv_selected'] = None
         
+CLEAN_DATA = "response"
 LONG_TERM_MEMORY_FILE = "long_term_memory.txt" 
 SUCCESFULL_RESPONSE = "Successfully response generated and saved"
 ERROR_RESPONOSE = "No response found"
@@ -84,41 +85,33 @@ def process_questions():
     personality_content = user_personality
     prompt_content = user_prompt
 
-    results = search_emb(query, paragraphs)
-    
-    for index, row in results.iterrows():
-        text_lines = [line.strip() for line in row['text'].split('\n') if line.strip()]
-        cleaned_text = ' '.join(text_lines)
-        topic = os.path.splitext(csv_selected)[0]
-        
         # Construir mensajes con el contenido recibido
-        messages = [
-            {
-                "role": "system",
-                "content": f"""{personality_content}
-                """
-            },
-            {
-                "role": "user",
-                "content": f"""Prompt: Please reply to this query: {query},
-                by generating a response to that prompt based on this data:{cleaned_text} {prompt_content}
+    messages = [
+        {
+            "role": "system",
+            "content": f"""{personality_content}
+            """
+        },
+        {
+            "role": "user",
+            "content": f"""Prompt: Please reply to this query: {query},
+            by generating a response to that prompt based on this data:{CLEAN_DATA} {prompt_content}
                 """
             }
         ]
 
         # Generar respuesta
-        start_time = time.time() 
-        full_response = openai.ChatCompletion.create(
-            model="gpt-4-1106-preview",
-            messages=messages,
-            max_tokens=100,
-        ).choices[0].message["content"]
-        sentences = full_response.split(". ")
-        response = ". ".join(sentences[0:])
+    start_time = time.time() 
+    full_response = openai.ChatCompletion.create(
+        model="gpt-4-1106-preview",
+        messages=messages,
+        max_tokens=100,
+    ).choices[0].message["content"]
+    sentences = full_response.split(". ")
+    response = ". ".join(sentences[0:])
         
-        return jsonify({'response': response})
-    
-    return jsonify({'message': 'Resultados impresos en la consola.'})
+    return jsonify({'response': response})
+
 
 
 @app.route('/save_files', methods=['POST'])
@@ -140,9 +133,6 @@ def save_files():
         # Leer el contenido de los archivos después de guardarlos
         personality_content = read_file_content(save_path_personality, encoding='utf-8')
         prompt_content = read_file_content(save_path_prompt, encoding='utf-8')
-
-        print("Personality Content:", personality_content)
-        print("Prompt Content:", prompt_content)
         
         # Obtener la lista de archivos en las carpetas
         csv_files_dir = 'csv_files'
@@ -203,14 +193,12 @@ def clean_json_files(long_response_file):
 
 @app.route('/ask_question/<unity_string>/<question>', methods=['POST'])
 def ask_question(question, unity_string):
-    print("Entro a ask question...")
     try:
         clean_json_files(LONG_RESPONSE_FILE)
-        print('limpio')
-        global paragraphs
         global user_personality
         global user_prompt
         global csv_file_server
+        global CLEAN_DATA
 
         # Recuperar el nombre del CSV de la sesión
         csv_selected = csv_file_server
@@ -218,53 +206,45 @@ def ask_question(question, unity_string):
         if csv_selected is None:
             return jsonify({'error': 'No CSV selected'})
 
-        csv_file_path = os.path.join('csv_files', f'{csv_selected}')
-        paragraphs = load_csv(csv_file_path)
+        #csv_file_path = os.path.join('csv_files', f'{csv_selected}')
+        #paragraphs = load_csv(csv_file_path)
 
         personality_content = user_personality
         prompt_content = user_prompt
-        print("Personality Content:", personality_content)
-        print("Prompt Content:", prompt_content)
-
-        results = search_emb(question, paragraphs)
-
-        for index, row in results.iterrows():
-            text_lines = [line.strip() for line in row['text'].split('\n') if line.strip()]
-            cleaned_text = ' '.join(text_lines)
-            topic = os.path.splitext(csv_selected)[0]
 
             # Construir mensajes con el contenido recibido
-            messages = [
-                {
-                    "role": "system",
-                    "content": f"""{personality_content}
-                    """
-                },
-                {
-                    "role": "user",
-                    "content": f"""Prompt: Please reply to this query: {question},
-                    by generating a response to that prompt based on this data:{cleaned_text} {prompt_content}
-                    """
-                }
-            ]
+        messages = [
+            {
+                "role": "system",
+                "content": f"""{personality_content}
+                """
+            },
+            {
+                "role": "user",
+                "content": f"""Prompt: Please reply to this query: {question},
+                by generating a response to that prompt based on this data: {CLEAN_DATA} {prompt_content}
+                """
+            }
+        ]
 
-            # Generar respuesta
-            start_time = time.time()
-            full_response = openai.ChatCompletion.create(
-                model="gpt-4-1106-preview",
-                messages=messages,
-                max_tokens=100,
-            ).choices[0].message["content"]
-            sentences = full_response.split(". ")
-            response = ". ".join(sentences[0:])
-
-            print('Response:', unity_string + ' ' + response)
-            save_to_short_term_memory(question, response, SHORT_TERM_MEMORY_FILE)
-            save_to_long_term_memory(question, response, LONG_TERM_MEMORY_FILE)
+        # Generar respuesta
+        start_time = time.time()
+        full_response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=messages,
+            max_tokens=500,
+        ).choices[0].message["content"]
+        sentences = full_response.split(". ")
+        response = ". ".join(sentences[0:])
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print(f"Elapsed Time: {elapsed_time} seconds")
+        print('Response:', unity_string + ' ' + response)
+        save_to_short_term_memory(question, response, SHORT_TERM_MEMORY_FILE)
+        save_to_long_term_memory(question, response, LONG_TERM_MEMORY_FILE)
             
-            return jsonify({'response': unity_string + ' ' + response})
+        return jsonify({'response': unity_string + ' ' + response})
 
-        return jsonify({'message': SUCCESFULL_RESPONSE})
 
     except Exception as e:
         print("Error:", str(e))
