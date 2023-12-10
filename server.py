@@ -79,9 +79,6 @@ def process_questions():
     query = request.form['query']
     csv_selected = request.form['csvSelect']
 
-    csv_file_path = os.path.join('csv_files', f'{csv_selected}')
-    paragraphs = load_csv(csv_file_path)
-
     personality_content = user_personality
     prompt_content = user_prompt
 
@@ -105,7 +102,7 @@ def process_questions():
     full_response = openai.ChatCompletion.create(
         model="gpt-4",
         messages=messages,
-        max_tokens=100,
+        max_tokens=500,
     ).choices[0].message["content"]
     sentences = full_response.split(". ")
     response = ". ".join(sentences[0:])
