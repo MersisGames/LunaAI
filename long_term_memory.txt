@@ -1,40 +1,73 @@
+asdasd
+
+Question: how far is saturn
+Response: Oh, just a stroll across the cosmic neighborhood! Saturn is a mere 1,433,000,000 kilometers away from the Sun. That's about 9.5 astronomical units (AU), in case you casually think in terms of astronomical units, which, by the way, is the distance from the Earth to the Sun. So, you know, if you're planning a road trip, better pack some snacks – it's gonna take a while. And don't forget to dress warm,
+
+Question: how far is saturn
+Response: Oh, Saturn? It's just a casual average of about 1.2 billion kilometers away – essentially a stone’s throw if you're a giant cosmic entity. If you're stuck with current human technology, well, pack a lunch cause it's going to take a while. Maybe strap in for a few thousand naps too, since the quickest we've made it there so far with our probes has been a leisurely few years. But hey, it's not like it’s going anywhere fast
+
+Question: what color is mars
+Response: Oh, I don't know, maybe it's because Mars is known as 'The Red Planet' that might give us a teensy hint about its color. It's definitely not because of the iron oxide on its surface, giving it that lovely shade of rusty red. Nope, must be red because it was embarrassed to be spotted in the solar system's ‘no go zone’ without its moons.
+
+Question: what color is mars
+Response: Oh, what a mystery wrapped in an enigma! The color of Mars... could it be chartreuse? No, no, that's not right. How about a lovely shade of lilac? Wait, that can't be it either. Oh, I've got it now! Mars, the ever elusive fourth planet from the sun, happens to be none other than reddish! Yes, you heard right – reddish, due to iron oxide, or as we laypeople like to call it
+
+Question: what color is mars
+Response: Well, if you haven't seen about a gazillion pictures from every space agency known to humankind, Mars is famously known as the "Red Planet." But why would it be called that? Maybe because it's red! I know, mind-blowing, right? It's not like it's covered in iron oxide or anything, giving it that rusty, reddish appearance that dominates the color palette. So yeah, it's red, in case the nickname didn't give it away.
+
+Question: what color is mars
+Response: Oh, let me think really hard about this one… Ah yes, Mars is infamously known as the Blueberry of the Solar System. Kidding! Mars, the eternally red planet, is rocking that rust-colored look thanks to all the iron oxide over there. It's basically the galaxy's biggest iron sculpture that's been left out in the cosmic rain. So chic, so rustique.
+
+Question: what color is mars
+Response: Oh, I'm so glad you asked! Mars, you know, that tiny dot in the night sky? Yeah, it's known as the "Red Planet" - and no prizes for guessing why. It's because it's... wait for it... red! Shocking, isn't it? I mean, who would have thought? No, really, its iron-rich dust gives it a striking red color. Quite the show-off in the solar system, don't you think?
+
+Question: what color is venus
+Response: Oh honey, Venus doesn't just fit into a single, convenient box color. No, she's much too complicated for that. Generally, from space, she's a very on-trend, cloud-covered, pale yellowish-white. However, because her thick atmosphere scatters light in a way similar to what happens at sunset here on Earth, she can appear various shades of yellow-orange when viewed from the ground. 
+
+But you know, she's got depth, Venus. At her surface, thanks to the iron minerals, it's more like a gray or blackish in color. But you won't be seeing that firsthand anytime soon unless you're planning an impromptu vacation trip with a one-way heat-resistant spaceship. Call it like a makeover for your whole existence. Fancy, huh?
+
+Question: what color is jupiter
+Response: Oh, you wouldn't believe it, but Jupiter decided to go with a delightful mix of orange and white stripes. It's really very haute couture.
 
 
-Question:  how far is the moon
-Response: [NEUTRAL] The average distance to the Moon from Earth is about 384,400 kilometers.
+Question: what color is jupiter
+Response: Oh, you finally noticed Jupiter, huh? Well, in case you have missed it in every picture ever, it's mostly shades of orange, brown, white, and a wee bit of red. Only a colossal gas giant the size of 1300 Earths, nothing outstanding, right?
 
-Question:  what is an exoplanet
-Response: [INTRIGUED] An exoplanet is a planet located outside our solar system that orbits a star, just like the Earth orbits the Sun.
+Question: what color is mars
+Response: Oh, let me put on my surprise face. It's red! Yes indeed, Mars, also known as the "Red Planet," gets its reddish appearance from iron oxide – or rust – on its surface.
 
-Question:  if you can re name an exoplanet which name it would be
-Response: [EXCITED] If I could rename an exoplanet, I'd choose the name "Celestia." It sounds majestic and captures the wonder of discovering new worlds!
+Question: what color is mars
+Response: Oh, you know, it's just that subtle shade of rusty red, very "in" this season. Hence, its fashionable nickname, the "Red Planet".
 
-Question:  my fav planet is mars, which is yours
-Response: [INTRIGUED] Ah, Mars is a great choice! If I had to pick, my favorite would be Saturn. Its majestic rings make it such a unique and captivating planet in our solar system.
+Question: what color is mars
+Response: Oh wow, what a stumper! Mars, the "Red Planet" ... I wonder what color it could be? Ends up, it's red. Mind-blowing, I know!
 
-Question:  how many moons has jupiter
-Response: [EXCITED] Jupiter has an impressive family of 79 known moons, each with its own unique characteristics and mysteries to unravel!
+Question: what color is mars
+Response: Oh, you almost had me there! Mars, the infamous Blue Planet! Wait, that doesn't sound quite right... maybe because it's famously known as the Red Planet, due to its rusty iron oxide dust covering its surface. Blue Mars must be from a parallel universe or an over-enthusiastic Photoshop session.
 
-Question:  which is my fav planet
-Response: [INQUISITIVE] You mentioned earlier that your favorite planet is Mars, which is known for its red surface and potential for past or present life!
+Question: what color is mars
+Response: Oh, clearly you didn't get the memo: Mars is the new blue! Kidding. It's generally depicted as red, but thanks to science and its fancy 'false color' images, it can sometimes appear blue to indicate varying methane levels. What a chameleon, right?
 
-Question: hi luna, how big is mars
-Response: [EMOTION: HAPPY] Hi there! Mars has a diameter of about 6,779 kilometers – compact when compared to Earth but plenty of space to explore!
+Question: what color is venus
+Response: Oh, honey, Venus isn't just a simple rainbow color palette for you to pick from like a Sunday painter. If you're lucky enough to get a glimpse of Venus with your naked eye, it'll appear as a white-ish, bright point of light. Up close, it's more of a yellowish-white due to its dense atmosphere of sulfuric acid clouds. Hope your favorite color is sulfur yellow!  
 
-Question: tell me something interesting about an exo planet
-Response: [EMOTION: INTRIGUED] An exoplanet named HD 189733b is quite the sight – despite its beautiful deep blue hue, akin to Earth's color when seen from space, it actually rains glass there, sideways, in incredibly fierce winds!
+Question: what color is venus
+Response: Well, because you asked so nicely. Venus is an eye-catching blend of yellowish-white, thanks to all that lovely sulfuric acid in its clouds. Basically, think of it as a shining toxic ball in the sky!
 
-Question: ok so can you rename that exo planet HD 189733b
-Response: [EMOTION: NEUTRAL] I can certainly entertain the idea, but in reality, exoplanet names are agreed upon by international astronomical organizations, and HD 189733b is the official designation.
+Question: what color is venus
+Response: Oh, Venus. The tropical paradise of our solar system, right? Except it's more like a perpetual volcanic nightmare complete with sulfuric acid clouds! True color images show it as a delightful shade of toxic sulfur yellow. A real dream vacation spot if there ever was one!
 
-Question: ok but if you can rename it, which name you could use
-Response: [EMOTION: CREATIVE] If I could propose a name for HD 189733b, I might call it Azure Torrentia, to capture both its blue color and the intense glass rainstorms it experiences!
+Question: what color is venus
+Response: Oh, Venus, our sparkly little cosmic sauna! Its color, you asked? Well, darling, it's truly resplendent in all shades of toxic yellow due to its sulfuric acid clouds, essentially giving it that "battery acid chic" vibe. Quite a sight for sore eyes, wouldn't you say?
 
-Question: thats a good re name and why did you choose it
-Response: [EMOTION: HAPPY] I'm glad you liked it! I chose "Azure Torrentia" because it captures the essence of the planet's unique weather and striking blue appearance.
+Question: where agustin work?
+Response: Agustin works as a Full Stack Developer Jr, and he has also worked as a Jr. Supervisor at Rohrer INC. He had a significant role in the Door Store Website project as well.
 
-Question: thats a good re name and why did you choose it
-Response: [NEUTRAL] I'm glad you think it's a good re name! Since the provided data is an empty DataFrame, I can't give specific reasons for the choice, but I'd imagine it's a name that's both unique and represents an interesting concept or idea!
+Question: which kind of work agustin did
+Response: Agustin has worked in diverse roles such as a full stack developer and Jr. supervisor, excelling in website project management, software development, operations management, and team leadership. His technical expertise includes JavaScript, HTML, CSS, React, Redux, and more.
 
-Question: how far is the moon
-Response: [NEUTRAL] The average distance from the Earth to the Moon is about 384,400 kilometers.
+Question: where did agustin works
+Response: Agustin worked as a Jr. Software Engineer at Henry in Argentina, and as a Jr. Supervisor at Rohrer INC in Chicago. He was also pivotal in the Door Store website project.
+
+Question: where did agustin works
+Response: Agustin worked as a Jr. Software Engineer in Argentina from Nov. 2022 to Feb. 2023 and served as a Jr. Supervisor at Rohrer INC in Chicago, IL in 2018.

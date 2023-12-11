@@ -193,7 +193,7 @@ def process_questions():
         messages = [
             {
                 "role": "system",
-                "content": f"""{personality_content}
+                "content": f"""{personality_content}, here is our previous conversation {SHORT_TERM_MEMORY_FILE}
                 """
             },
             {
@@ -292,12 +292,13 @@ def ask_question(question, unity_string):
             messages = [
                 {
                     "role": "system",
-                    "content": f"""{personality_content}
+                    "content": f"""{personality_content}, in case you need, here is our previous conversation {SHORT_TERM_MEMORY_FILE}
                     """
                 },
                 {
                     "role": "user",
                     "content": f"""Prompt: Please reply to this query: {question},
+                    also keep in mind out previous conversation
                     by generating a response to that prompt based on this data:{cleaned_text} {prompt_content}
                     """
                 }
