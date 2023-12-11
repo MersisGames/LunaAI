@@ -181,22 +181,31 @@
     </script>
     <script>
         function processQuestions() {
-            var query = document.getElementById('query').value;
-            var csvSelect = document.getElementById('csvSelect');
-            var csvSelected = csvSelect.options[csvSelect.selectedIndex].value;
+    var query = document.getElementById('query').value;
+    var csvSelect = document.getElementById('csvSelect');
+    var csvSelected = csvSelect.options[csvSelect.selectedIndex].value;
     
-            fetch('/process_questions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: 'query=' + encodeURIComponent(query) + '&csvSelect=' + encodeURIComponent(csvSelected),
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('chatGPTResponse').innerHTML = ' ' + data.response;
-            })
-            .catch(error => console.error('Error:', error));
+    showLoader();
+
+    fetch('/process_questions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'query=' + encodeURIComponent(query) + '&csvSelect=' + encodeURIComponent(csvSelected),
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoader();
+        document.getElementById('chatGPTResponse').innerHTML = ' ' + data.response;
+    })
+    .catch(error => {
+        hideLoader();
+        console.error('Error:', error);
+    });
+}
+function hideLoader() {
+            document.getElementById('loader-container').style.display = 'none';
         }
         function activateBot() {
         var query = prompt("Enter your question:");

@@ -5,19 +5,47 @@ from flask import Flask, render_template, request, jsonify, session
 import json
 import os
 import openai 
-
+from openai.embeddings_utils import get_embedding, cosine_similarity
+import pandas as pd
 #from luna_ai import generate_short_response as generate_short_response_bot
-from luna_ai import generate_response_LTM as generate_response_LTM_bot, load_csv, process_file, read_file_content, save_to_long_term_memory, save_to_short_term_memory, search_emb
+from luna_ai import generate_response_LTM as generate_response_LTM_bot, process_file, read_file_content, save_to_long_term_memory, save_to_short_term_memory
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24) 
+
+def load_csv(csv_path, engine="text-embedding-ada-002"):
+    load_csv = time.time()
+    data = pd.read_csv(csv_path)
+    data = embed_text(data, engine=engine)
+    final_load_csv = time.time()
+    total_load_csv = final_load_csv - load_csv
+    print(f"total_load_csv: {total_load_csv:.2f}")
+    return data
+
+
+def embed_text(data, engine="text-embedding-ada-002"):
+    init_embed_text = time.time()
+    data['Embedding'] = data['text'].apply(lambda x: get_embedding(x, engine=engine))
+    final_embed_text = time.time()
+    total_embed_text = final_embed_text - init_embed_text
+    print(f"fin embed text: {total_embed_text:.2f}")
+    return data
+
+def search_emb(query, data, n_results=5):
+    init_search_embed = time.time()
+    query_embedding = get_embedding(query, engine="text-embedding-ada-002")
+    data["Similarity"] = data['Embedding'].apply(lambda x: cosine_similarity(x, query_embedding))
+    data = data.sort_values("Similarity", ascending=False)
+    final_search_embed = time.time()
+    total_search_text = final_search_embed - init_search_embed
+    print(f"fin search embed: {total_search_text:.2f}")
+    return data.iloc[:n_results][["text", "Similarity", "Embedding"]]
 
 @app.before_request
 def before_request():
     if 'csv_selected' not in session:
         session['csv_selected'] = None
         
-CLEAN_DATA = "response"
 LONG_TERM_MEMORY_FILE = "long_term_memory.txt" 
 SUCCESFULL_RESPONSE = "Successfully response generated and saved"
 ERROR_RESPONOSE = "No response found"
@@ -26,7 +54,10 @@ LONG_RESPONSE_FILE = 'longResponse.json'
 
 response_data = {}
 paragraphs = " "
+final_paragraphs = " "
 csv_file_server = " "
+u_string = " "
+f_responose = " "
 SHORT_TERM_MEMORY_FILE = str(uuid.uuid4()) + "_STM.txt" 
 
 
@@ -70,46 +101,6 @@ def process():
 
     return 'Error processing the file.'
 
-@app.route('/process_questions', methods=['POST'])
-def process_questions():
-    global paragraphs
-    global user_personality
-    global user_prompt
-
-    query = request.form['query']
-    csv_selected = request.form['csvSelect']
-
-    personality_content = user_personality
-    prompt_content = user_prompt
-
-        # Construir mensajes con el contenido recibido
-    messages = [
-        {
-            "role": "system",
-            "content": f"""{personality_content}
-            """
-        },
-        {
-            "role": "user",
-            "content": f"""Prompt: Please reply to this query: {query},
-            by generating a response to that prompt based on this data:{CLEAN_DATA} {prompt_content}
-                """
-            }
-        ]
-
-        # Generar respuesta
-    start_time = time.time() 
-    full_response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=messages,
-        max_tokens=500,
-    ).choices[0].message["content"]
-    sentences = full_response.split(". ")
-    response = ". ".join(sentences[0:])
-        
-    return jsonify({'response': response})
-
-
 
 @app.route('/save_files', methods=['POST'])
 def save_files():
@@ -117,6 +108,8 @@ def save_files():
         global user_personality
         global user_prompt
         global csv_file_server
+        global final_paragraphs
+
         # Guardar en la carpeta "personality"
         personality_file = request.files['personalityFile']
         save_path_personality = os.path.join('personality', personality_file.filename)
@@ -130,7 +123,10 @@ def save_files():
         # Leer el contenido de los archivos después de guardarlos
         personality_content = read_file_content(save_path_personality, encoding='utf-8')
         prompt_content = read_file_content(save_path_prompt, encoding='utf-8')
-        
+
+        print("Personality Content:", personality_content)
+        print("Prompt Content:", prompt_content)
+
         # Obtener la lista de archivos en las carpetas
         csv_files_dir = 'csv_files'
         csv_files = [file for file in os.listdir(csv_files_dir) if file.endswith('.csv')]
@@ -143,16 +139,93 @@ def save_files():
 
         user_personality = personality_content
         user_prompt = prompt_content
-     
+
         selected_csv = request.form['csvSelect']
         session['csv_selected'] = selected_csv
         csv_file_server = session['csv_selected']
         print('Selected CSV:', csv_file_server)
+
+        # Llamar a la función embed_text después de guardar los archivos
+        csv_file_path = os.path.join('csv_files', f'{csv_file_server}')
+        paragraphs = load_csv(csv_file_path)
+        # Llamar a la función embed_text después de cargar el archivo CSV
+        final_paragraphs = embed_text(paragraphs)
         
+        print("paragraphs: ", paragraphs)
+        # Renderizar la plantilla con datos
         return render_template('bot.html', csv_options=csv_files, per_files=per_files, prompt_files=prompt_files)
 
     except Exception as e:
         return f"Error: {str(e)}"
+
+@app.route('/process_questions', methods=['POST'])
+def process_questions():
+    first_init = time.time()
+    global paragraphs
+    global user_personality
+    global user_prompt
+    global final_paragraphs
+
+    query = request.form['query']
+    csv_selected = request.form['csvSelect']
+
+    personality_content = user_personality
+    prompt_content = user_prompt
+
+    fin_primer_parte = time.time()
+
+    tiempo_transcurrido = fin_primer_parte - first_init
+    print(f"FinPrimer parte:  {tiempo_transcurrido:.2f}")
+    
+    second_init = time.time()
+    results = search_emb(query, final_paragraphs)
+    fin_2_parte = time.time() 
+    tiempo_transcurrido_2do = fin_2_parte - second_init
+    print(f"fin segunda parte: {tiempo_transcurrido_2do:.2f}")
+    
+    for index, row in results.iterrows():
+        third_init = time.time()
+        text_lines = [line.strip() for line in row['text'].split('\n') if line.strip()]
+        cleaned_text = ' '.join(text_lines)
+        topic = os.path.splitext(csv_selected)[0]
+
+        # Construir mensajes con el contenido recibido
+        messages = [
+            {
+                "role": "system",
+                "content": f"""{personality_content}
+                """
+            },
+            {
+                "role": "user",
+                "content": f"""Prompt: Please reply to this query: {query},
+                by generating a response to that prompt based on this data:{cleaned_text} {prompt_content}
+                """
+            }
+        ]
+
+        # Generar respuesta
+        start_time = time.time() 
+        full_response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=messages,
+            max_tokens=500,
+        ).choices[0].message["content"]
+        sentences = full_response.split(". ")
+        response = ". ".join(sentences[0:])
+        fin_3_parte = time.time() 
+        tiempo_transcurrido_3er = fin_3_parte - third_init
+        print(f"fin tercera parte: {tiempo_transcurrido_3er:.2f}")
+        
+        save_to_short_term_memory(query, response, SHORT_TERM_MEMORY_FILE)
+        save_to_long_term_memory(query, response, LONG_TERM_MEMORY_FILE)
+        return jsonify({'response': response})
+    
+    
+    
+    return jsonify({'message': 'Resultados impresos en la consola.'})
+
+
 
 # def short_response(question):
 #     short_response = generate_short_response_bot(question)
@@ -162,8 +235,8 @@ def save_files():
 #         json.dump({"response": short_response}, json_file)
 #     return jsonify({"message": SUCCESFULL_RESPONSE})
 
-def long_response(question, unity_string):
-    long_response = generate_response_LTM_bot(question, SHORT_TERM_MEMORY_FILE, unity_string)
+def long_response(u_string, f_responose):
+    long_response = u_string ," " , f_responose
     if os.path.exists(LONG_RESPONSE_FILE):
         os.remove(LONG_RESPONSE_FILE)
     with open(LONG_RESPONSE_FILE, 'w') as json_file:
@@ -190,58 +263,64 @@ def clean_json_files(long_response_file):
 
 @app.route('/ask_question/<unity_string>/<question>', methods=['POST'])
 def ask_question(question, unity_string):
+    print("Entro a ask question...")
     try:
         clean_json_files(LONG_RESPONSE_FILE)
+        print('limpio')
+        global paragraphs
         global user_personality
         global user_prompt
         global csv_file_server
-        global CLEAN_DATA
+        global final_paragraphs
+        global u_string
+        global f_responose
 
-        # Recuperar el nombre del CSV de la sesión
-        csv_selected = csv_file_server
-        print("Selected:", csv_selected)
-        if csv_selected is None:
-            return jsonify({'error': 'No CSV selected'})
-
-        #csv_file_path = os.path.join('csv_files', f'{csv_selected}')
-        #paragraphs = load_csv(csv_file_path)
 
         personality_content = user_personality
         prompt_content = user_prompt
+        print("Personality Content:", personality_content)
+        print("Prompt Content:", prompt_content)
+
+        results = search_emb(question, final_paragraphs)
+
+        for index, row in results.iterrows():
+            text_lines = [line.strip() for line in row['text'].split('\n') if line.strip()]
+            cleaned_text = ' '.join(text_lines)
+
 
             # Construir mensajes con el contenido recibido
-        messages = [
-            {
-                "role": "system",
-                "content": f"""{personality_content}
-                """
-            },
-            {
-                "role": "user",
-                "content": f"""Prompt: Please reply to this query: {question},
-                by generating a response to that prompt based on this data: {CLEAN_DATA} {prompt_content}
-                """
-            }
-        ]
+            messages = [
+                {
+                    "role": "system",
+                    "content": f"""{personality_content}
+                    """
+                },
+                {
+                    "role": "user",
+                    "content": f"""Prompt: Please reply to this query: {question},
+                    by generating a response to that prompt based on this data:{cleaned_text} {prompt_content}
+                    """
+                }
+            ]
 
-        # Generar respuesta
-        start_time = time.time()
-        full_response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=messages,
-            max_tokens=500,
-        ).choices[0].message["content"]
-        sentences = full_response.split(". ")
-        response = ". ".join(sentences[0:])
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        print(f"Elapsed Time: {elapsed_time} seconds")
-        print('Response:', unity_string + ' ' + response)
-        save_to_short_term_memory(question, response, SHORT_TERM_MEMORY_FILE)
-        save_to_long_term_memory(question, response, LONG_TERM_MEMORY_FILE)
+            # Generar respuesta
+            full_response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=messages,
+                max_tokens=600,
+            ).choices[0].message["content"]
+            sentences = full_response.split(". ")
+            response = ". ".join(sentences[0:])
+            u_string = unity_string
+            f_responose = response
+            print('Response:', unity_string + ' ' + response)
+            long_response(u_string, f_responose)
+            save_to_short_term_memory(question, response, SHORT_TERM_MEMORY_FILE)
+            save_to_long_term_memory(question, response, LONG_TERM_MEMORY_FILE)
             
-        return jsonify({'response': unity_string + ' ' + response})
+            return jsonify({'response': unity_string + ' ' + response})
 
+        return jsonify({'message': SUCCESFULL_RESPONSE})
 
     except Exception as e:
         print("Error:", str(e))

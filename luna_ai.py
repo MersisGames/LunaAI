@@ -33,17 +33,22 @@ openai.api_key = constants.APIKEY
 paragraphs = pd.DataFrame(columns=["text", "Embedding"])
 
 def embed_text(data, engine="text-embedding-ada-002"):
+    init_embed_text = time.time()
     data['Embedding'] = data['text'].apply(lambda x: get_embedding(x, engine=engine))
+    final_embed_text = time.time()
+    total_embed_text = final_embed_text - init_embed_text
+    print(f"fin embed text: {total_embed_text:.2f}")
     return data
 
 def search_emb(query, data, n_results=5):
+    init_search_embed = time.time()
     query_embedding = get_embedding(query, engine="text-embedding-ada-002")
     data["Similarity"] = data['Embedding'].apply(lambda x: cosine_similarity(x, query_embedding))
     data = data.sort_values("Similarity", ascending=False)
-    if cosine_similarity:
-        return data.iloc[:1][["text", "Similarity", "Embedding"]]
-    else:
-        return data.iloc[:n_results][["text", "Similarity", "Embedding"]]
+    final_search_embed = time.time()
+    total_search_text = final_search_embed - init_search_embed
+    print(f"fin search embed: {total_search_text:.2f}")
+    return data.iloc[:n_results][["text", "Similarity", "Embedding"]]
 
 def init_data():
     if not os.path.exists(NEW_DATA_FILE) or os.path.getsize(NEW_DATA_FILE) == 0:
@@ -95,11 +100,15 @@ def process_file(file_path, paragraphs):
     paragraphs['Embedding'] = paragraphs["text"].apply(lambda x: get_embedding(x, engine='text-embedding-ada-002'))
     return paragraphs
 
-
+    
 # Función para cargar el archivo CSV y aplicar la función de embedding
 def load_csv(csv_path, engine="text-embedding-ada-002"):
+    load_csv = time.time()
     data = pd.read_csv(csv_path)
     data = embed_text(data, engine=engine)
+    final_load_csv = time.time()
+    total_load_csv = final_load_csv - load_csv
+    print(f"total_load_csv: {total_load_csv:.2f}")
     return data
 
 def read_file_content(file_path, encoding='utf-8'):
@@ -155,9 +164,9 @@ def search(query, data, placeholder, short_term_memory):
     #Generate Response
     start_time = time.time() 
     full_response = openai.ChatCompletion.create(
-        model="gpt-4-1106-preview",
+        model="gpt-4 turbo",
         messages=messages,
-        max_tokens=100,
+        max_tokens=500,
     ).choices[0].message["content"]
     sentences = full_response.split(". ")
     LTM_response = ". ".join(sentences[0:])
