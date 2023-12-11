@@ -137,16 +137,30 @@
                 <select id="csvSelect" name="csvSelect" required>
                     {% for csv_option in csv_options %}
                         <option value="{{ csv_option }}">{{ csv_option }}</option>
-                    {% endfor %}
+                    {% endfor %}  
                 </select>
+                
                 <h2>Load Personality</h2>
-                <input type="file" id="personalityFile" name="personalityFile" accept=".pdf, .txt, .docx">
+                <select id="personalitySelect" name="personalitySelect" required>
+                    {% for per_file in per_files %}
+                        <option value="{{ per_file }}">{{ per_file }}</option>
+                    {% endfor %}  
+                </select>
+                
                 <br>
+                
                 <h2>Load Prompt Engineering:</h2>
-                <input type="file" id="promptFile" name="promptFile" accept=".pdf, .txt, .docx">
+                <select id="promptSelect" name="promptSelect" required>
+                    {% for prompt_file in prompt_files %}
+                        <option value="{{ prompt_file }}">{{ prompt_file }}</option>
+                    {% endfor %}  
+                </select>
+                
                 <br>
+                
                 <button type="submit">Save and Deploy</button>
             </form>
+            
         
     </div>
     
@@ -184,8 +198,7 @@
     var query = document.getElementById('query').value;
     var csvSelect = document.getElementById('csvSelect');
     var csvSelected = csvSelect.options[csvSelect.selectedIndex].value;
-    
-    showLoader();
+
 
     fetch('/process_questions', {
         method: 'POST',
@@ -196,11 +209,9 @@
     })
     .then(response => response.json())
     .then(data => {
-        hideLoader();
         document.getElementById('chatGPTResponse').innerHTML = ' ' + data.response;
     })
     .catch(error => {
-        hideLoader();
         console.error('Error:', error);
     });
 }

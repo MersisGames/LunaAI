@@ -81,6 +81,11 @@ def process():
     # Obtener la lista de archivos enviados por el usuario
     files = request.files.getlist('file')
     csv_name = request.form['csvName']
+    
+    # Obtener la lista de archivos enviados por el usuario
+    files = request.files.getlist('file')
+    csv_name = request.form['csvName']
+
 
     # Crear una lista para almacenar los DataFrames de cada archivo
     all_paragraphs = []
@@ -125,23 +130,6 @@ def save_files():
         global csv_file_server
         global final_paragraphs
 
-        # Guardar en la carpeta "personality"
-        personality_file = request.files['personalityFile']
-        save_path_personality = os.path.join('personality', personality_file.filename)
-        personality_file.save(save_path_personality)
-
-        # Guardar en la carpeta "prompt"
-        prompt_file = request.files['promptFile']
-        save_path_prompt = os.path.join('prompt', prompt_file.filename)
-        prompt_file.save(save_path_prompt)
-
-        # Leer el contenido de los archivos después de guardarlos
-        personality_content = read_file_content(save_path_personality, encoding='utf-8')
-        prompt_content = read_file_content(save_path_prompt, encoding='utf-8')
-
-        print("Personality Content:", personality_content)
-        print("Prompt Content:", prompt_content)
-
         # Obtener la lista de archivos en las carpetas
         csv_files_dir = 'csv_files'
         csv_files = [file for file in os.listdir(csv_files_dir) if file.endswith('.csv')]
@@ -152,8 +140,23 @@ def save_files():
         prompt_files_dir = 'prompt'
         prompt_files = [file for file in os.listdir(prompt_files_dir) if file.endswith(('.docx', '.txt', '.pdf'))]
 
-        user_personality = personality_content
-        user_prompt = prompt_content
+        # Obtener el nombre de los archivos seleccionados por el usuario
+        user_personality_filename = request.form['personalitySelect']
+        user_prompt_filename = request.form['promptSelect']
+
+        # Construir las rutas completas a los archivos
+        user_personality_path = os.path.join(per_files_dir, user_personality_filename)
+        user_prompt_path = os.path.join(prompt_files_dir, user_prompt_filename)
+
+        # Leer el contenido de los archivos seleccionados por el usuario
+        user_personality_content = read_file_content(user_personality_path, encoding='utf-8')
+        user_prompt_content = read_file_content(user_prompt_path, encoding='utf-8')
+
+        print("User Personality Content:", user_personality_content)
+        print("User Prompt Content:", user_prompt_content)
+
+        user_personality = user_personality_content
+        user_prompt = user_prompt_content
 
         selected_csv = request.form['csvSelect']
         session['csv_selected'] = selected_csv
@@ -165,7 +168,6 @@ def save_files():
         paragraphs = load_csv(csv_file_path)
         # Llamar a la función embed_text después de cargar el archivo CSV
         final_paragraphs = embed_text(paragraphs)
-        
         print("paragraphs: ", paragraphs)
         # Renderizar la plantilla con datos
         return render_template('bot.html', csv_options=csv_files, per_files=per_files, prompt_files=prompt_files)
