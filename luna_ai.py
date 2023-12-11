@@ -64,7 +64,7 @@ def init_data():
     else:
         print("File 'newData.csv' is already populated.")
         
-def process_file(file_path, paragraphs):
+def process_file(file_path):
     _, file_extension = os.path.splitext(file_path)
 
     if file_extension == '.pdf':
@@ -92,13 +92,20 @@ def process_file(file_path, paragraphs):
         print(f"Error: Unsupported file type '{file_extension}'.")
         return None
     
-    
-     # Extract the page_content from each text and convert it into a DataFrame
-    texts = [str(i.page_content) for i in texts]  # List of paragraphs
+    # Extract the page_content from each text and convert it into a DataFrame
+    #texts = [str(i.page_content) for i in texts]  # List of paragraphs
     paragraphs = pd.DataFrame(texts, columns=["text"])
-
     paragraphs['Embedding'] = paragraphs["text"].apply(lambda x: get_embedding(x, engine='text-embedding-ada-002'))
+    
     return paragraphs
+
+def process_files(file_paths):
+    all_paragraphs = []
+    for file_path in file_paths:
+        paragraphs = process_file(file_path)
+        if paragraphs is not None:
+            all_paragraphs.append(paragraphs)
+    return all_paragraphs
 
     
 # Función para cargar el archivo CSV y aplicar la función de embedding

@@ -77,30 +77,45 @@ def index():
 @app.route('/process', methods=['POST'])
 def process():
     global paragraphs
-    file = request.files['file']
-    csv_name = request.form['csvName'] 
 
+    # Obtener la lista de archivos enviados por el usuario
+    files = request.files.getlist('file')
+    csv_name = request.form['csvName']
+
+    # Crear una lista para almacenar los DataFrames de cada archivo
+    all_paragraphs = []
 
     uploads_dir = 'uploads'
     os.makedirs(uploads_dir, exist_ok=True)
-    _, file_extension = os.path.splitext(file.filename)
-    unique_filename = f"{csv_name}{file_extension}"
-    file_path = os.path.join(uploads_dir, unique_filename)
-    file.save(file_path)
-    paragraphs = process_file(file_path, paragraphs)
-    print("paragraphs: ", paragraphs)
-    if paragraphs is not None:
+
+    # Procesar cada archivo
+    for file in files:
+        _, file_extension = os.path.splitext(file.filename)
+        unique_filename = f"{csv_name}_{os.path.splitext(file.filename)[0]}{file_extension}"
+        file_path = os.path.join(uploads_dir, unique_filename)
+        file.save(file_path)
+
+        # Llamar a la función process_file para procesar cada archivo
+        paragraphs = process_file(file_path)
+
+        if paragraphs is not None:
+            all_paragraphs.append(paragraphs)
+
+    # Concatenar los DataFrames de todos los archivos
+    if all_paragraphs:
+        combined_paragraphs = pd.concat(all_paragraphs, ignore_index=True)
+
+        # Guardar el DataFrame combinado en un archivo CSV
         csv_files_dir = 'csv_files'
         os.makedirs(csv_files_dir, exist_ok=True)
         csv_file_path = os.path.join(csv_files_dir, f'{csv_name}.csv')
-        paragraphs.to_csv(csv_file_path, index=False)
+        combined_paragraphs.to_csv(csv_file_path, index=False)
 
         # Renderizar la plantilla con datos
         csv_files = [file for file in os.listdir(csv_files_dir) if file.endswith('.csv')]
         return render_template('bot.html', csv_options=csv_files)
 
-    return 'Error processing the file.'
-
+    return 'Error processing the files.'
 
 @app.route('/save_files', methods=['POST'])
 def save_files():
