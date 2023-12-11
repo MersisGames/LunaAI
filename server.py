@@ -219,6 +219,7 @@ def process_questions():
         
         save_to_short_term_memory(query, response, SHORT_TERM_MEMORY_FILE)
         save_to_long_term_memory(query, response, LONG_TERM_MEMORY_FILE)
+        long_response(response)
         return jsonify({'response': response})
     
     
@@ -235,8 +236,8 @@ def process_questions():
 #         json.dump({"response": short_response}, json_file)
 #     return jsonify({"message": SUCCESFULL_RESPONSE})
 
-def long_response(u_string, f_responose):
-    long_response = u_string ," " , f_responose
+def long_response(f_responose):
+    long_response = f_responose
     if os.path.exists(LONG_RESPONSE_FILE):
         os.remove(LONG_RESPONSE_FILE)
     with open(LONG_RESPONSE_FILE, 'w') as json_file:
@@ -315,7 +316,7 @@ def ask_question(question, unity_string):
             u_string = unity_string
             f_responose = response
             print('Response:', unity_string + ' ' + response)
-            long_response(u_string, f_responose)
+            long_response(f_responose)
             save_to_short_term_memory(question, response, SHORT_TERM_MEMORY_FILE)
             save_to_long_term_memory(question, response, LONG_TERM_MEMORY_FILE)
             
