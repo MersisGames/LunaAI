@@ -210,13 +210,16 @@ def process_questions():
         messages = [
             {
                 "role": "system",
-                "content": f"""{personality_content}, here is our previous conversation {SHORT_TERM_MEMORY_FILE}
+                "content": f"""{personality_content}
                 """
             },
             {
                 "role": "user",
-                "content": f"""Prompt: Please reply to this query: {query},
-                by generating a response to that prompt based on this data:{cleaned_text} {prompt_content}
+                "content": f"""Prompt: {prompt_content}
+                 
+                Please reply to this query: {query}, by generating a response to that prompt based on this data:{cleaned_text} 
+
+                for adiional context, the following is our conversation history so far: {SHORT_TERM_MEMORY_FILE}
                 """
             }
         ]
