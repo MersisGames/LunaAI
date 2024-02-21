@@ -1,1 +1,1 @@
-APIKEY = "sk-" 
+APIKEY = "" 

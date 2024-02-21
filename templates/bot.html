@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ai-Bot Creator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+            color: #333;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #555;
+        }
+
+        .up-block {
+            width: 100%;
+            height: 60%;
+            justify-content: center;
+            display: flex;
+        }
+
+        form {
+            max-width: 400px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        input[type="file"],
+        input[type="text"],
+        input[type="submit"],
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"],
+        button {
+            background-color: #3498db;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        input[type="submit"]:hover,
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        hr {
+            margin: 40px 0;
+            border: none;
+            border-top: 1px solid #ddd;
+        }
+
+        #chatGPTResponse {
+            margin-top: 20px;
+        }
+
+        #loader-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #loader {
+            border: 16px solid #f3f3f3; /* Light grey */
+            border-top: 16px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="loader-container">
+        <div id="loader"></div>
+    </div>
+    
+    <h1>Ai-Bot Creator</h1>
+    
+    <div class="up-block">
+        <!-- Note-->
+        <form action="/process" method="post" id="uploadForm" enctype="multipart/form-data">
+            <h2>Vector Data Generator</h2>
+            <label for="file">Choose a file:</label>
+            <input type="file" id="file" name="file" multiple accept=".pdf, .txt, .docx">
+            <br>
+            <label for="csvName">CSV File Name:</label>
+            <input type="text" id="csvName" name="csvName" required>
+          
+            <input type="submit" value="Upload and Process">
+        </form>
+            <br>
+            <form action="/save_files" method="post" id="uploadForm" enctype="multipart/form-data">
+                <h2>Select Knowledge Base</h2>
+                <select id="csvSelect" name="csvSelect" required>
+                    {% for csv_option in csv_options %}
+                        <option value="{{ csv_option }}">{{ csv_option }}</option>
+                    {% endfor %}  
+                </select>
+                
+                <h2>Load Personality</h2>
+                <select id="personalitySelect" name="personalitySelect" required>
+                    {% for per_file in per_files %}
+                        <option value="{{ per_file }}">{{ per_file }}</option>
+                    {% endfor %}  
+                </select>
+                
+                <br>
+                
+                <h2>Load Prompt Engineering:</h2>
+                <select id="promptSelect" name="promptSelect" required>
+                    {% for prompt_file in prompt_files %}
+                        <option value="{{ prompt_file }}">{{ prompt_file }}</option>
+                    {% endfor %}  
+                </select>
+                
+                <br>
+                
+                <button type="submit">Save and Deploy</button>
+            </form>
+            
+        
+    </div>
+    
+    <hr>
+    
+    <form>
+        <div id="chatGPTResponse"></div>
+        <br>
+        <label for="query">Enter your question:</label>
+        <input type="text" id="query" name="query" required>
+        <button type="button" onclick="processQuestions()">Submit</button>
+    </form>
+    
+    <hr>
+
+    <div id="loader-container">
+        <div id="loader"></div>
+    </div>
+</body>
+</html>
+
+    <script>
+        function showLoader() {
+            document.getElementById('loader-container').style.display = 'flex';
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', function (e) {
+            showLoader();
+            
+            
+        });
+    </script>
+    <script>
+        function processQuestions() {
+    var query = document.getElementById('query').value;
+    var csvSelect = document.getElementById('csvSelect');
+    var csvSelected = csvSelect.options[csvSelect.selectedIndex].value;
+
+
+    fetch('/process_questions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'query=' + encodeURIComponent(query) + '&csvSelect=' + encodeURIComponent(csvSelected),
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('chatGPTResponse').innerHTML = ' ' + data.response;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+function hideLoader() {
+            document.getElementById('loader-container').style.display = 'none';
+        }
+        function activateBot() {
+        var query = prompt("Enter your question:");
+        var customCsv = prompt("Enter CSV filename (optional):");
+
+        // Construye la URL con la pregunta y, opcionalmente, el nombre del archivo CSV
+        var url = '/ask_question/' + (customCsv ? customCsv + '/' : '') + query;
+
+        // Realiza una redirección a la ruta /ask_bot con la pregunta y, opcionalmente, el nombre del archivo CSV
+        window.location.href = url;
+    }
+    </script>
+
+</body>
+</html>
